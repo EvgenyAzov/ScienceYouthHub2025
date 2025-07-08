@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "775249945997",
+    "project_id": "scienceyouthhub",
+    "storage_bucket": "scienceyouthhub.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775249945997:android:56677f2cdc2bdee0fe09c4",
+        "android_client_info": {
+          "package_name": "com.example.scienceyouthhub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUQM5ezvg-Zy-lq-to5r2qkKzW9jPWA5w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

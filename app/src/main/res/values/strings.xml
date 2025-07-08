@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">ScienceYouthHub</string>
+    <string name="login">התחבר</string>
+    <string name="register">הירשם</string>
+    <string name="forgot_password">שכחתי סיסמה</string>
+    <string name="activities">פעילויות</string>
+    <string name="feedback">משובים</string>
+    <string name="photos">תמונות</string>
+    <string name="science">מדע</string>
+    <string name="society">חברה</string>
+    <string name="creation">יצירה</string>
+    <string name="please_fill_all_fields">אנא מלא את כל השדות</string>
+    <string name="please_enter_email">אנא הזן כתובת אימייל</string>
+    <string name="password_reset_email_sent">נשלח אימייל לאיפוס סיסמה</string>
+    <string name="failed_to_send_reset_email">שליחת אימייל לאיפוס נכשלה</string>
+</resources>
