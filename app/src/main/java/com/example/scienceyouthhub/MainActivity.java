@@ -1,46 +1,57 @@
 package com.example.scienceyouthhub;
 
-import static android.content.ContentValues.TAG;
-
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
-
+import android.widget.Button;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-import com.google.android.material.appbar.MaterialToolbar;
-
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
+
+    private TextView welcomeTextView;
+    private Button logoutButton;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "MainActivity created successfully");
 
-        // Set up Toolbar
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        welcomeTextView = findViewById(R.id.welcomeTextView);
+        logoutButton = findViewById(R.id.logoutButton);
 
-        // Set up Navigation
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.nav_host_fragment);
-        if (navHostFragment != null) {
-            NavController navController = navHostFragment.getNavController();
-            AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-            NavigationUI.setupWithNavController(toolbar, navController, appBarConfiguration);
-            Log.d(TAG, "NavController initialized successfully");
+        // Get user from Firebase
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+
+        if (user != null) {
+            String email = user.getEmail();
+            welcomeTextView.setText("Hello, " + email);
         } else {
-            Log.e(TAG, "NavHostFragment not found");
+            // If the user is not logged in, return to LoginActivity
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
         }
-    }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        // Save UI state for configuration changes
+        // Handle clicking on Logout
+        logoutButton.setOnClickListener(view -> {
+            // 1. Logout from Firebase
+            auth.signOut();
+
+            // 2. Remove userId from SharedPreferences
+            SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.remove("userId");
+            editor.apply();
+
+            // 3. Return to the login screen
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finishAffinity(); // Closes all Activities (so that you can't go back)
+        });
     }
 }

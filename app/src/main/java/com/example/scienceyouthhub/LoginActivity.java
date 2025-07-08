@@ -1,7 +1,6 @@
 package com.example.scienceyouthhub;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -11,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * Activity for user login and registration.
@@ -37,9 +37,9 @@ public class LoginActivity extends AppCompatActivity {
         Button registerButton = findViewById(R.id.register_button);
         TextView forgotPasswordText = findViewById(R.id.forgot_password_text);
 
-        // Check if user is already logged in
-        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        if (prefs.getString("userId", null) != null) {
+        // CHECK: If user is already logged in — go to MainActivity
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
@@ -57,7 +57,8 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "Login successful");
-                            saveLoginState(mAuth.getCurrentUser().getUid());
+                            // userId can be saved if needed
+                            // saveLoginState(mAuth.getCurrentUser().getUid());
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
                         } else {
@@ -79,7 +80,8 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "Registration successful");
-                            saveLoginState(mAuth.getCurrentUser().getUid());
+                            // userId can be saved if needed
+                            // saveLoginState(mAuth.getCurrentUser().getUid());
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
                         } else {
@@ -108,16 +110,16 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Saves user login state to SharedPreferences.
-     * @param userId The ID of the logged-in user
-     */
+    // If you need to save userId somewhere else, leave this method,
+    // but DO NOT use SharedPreferences to check authorization!
+    /*
     private void saveLoginState(String userId) {
         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("userId", userId);
         editor.apply();
     }
+    */
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
