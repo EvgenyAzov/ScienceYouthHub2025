@@ -3,9 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.scienceyouthhub">
 
-    <!--גישה ל-Firestore ול-Firebase-->
+    <!-- Разрешения -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Добавлено для будущих функций (например, доступ к файлам для фото) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" /> <!-- Ограничено до Android 13 из-за Scoped Storage -->
 
+    <!-- Указание минимальной версии API -->
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
 
     <application
         android:allowBackup="true"
@@ -17,7 +23,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ScienceYouthHub"
         tools:targetApi="31">
-        <!--הפיכת המסך LoginActivity למסך ראשי-->
+
+        <!-- LoginActivity как стартовый экран -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -26,12 +33,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- MainActivity -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-        <activity
-            android:name=".ProfileActivity"
-            android:exported="false" />
+
+
+
+
     </application>
 
 </manifest>

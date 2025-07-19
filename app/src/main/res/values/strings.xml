@@ -13,4 +13,9 @@
     <string name="please_enter_email">אנא הזן כתובת אימייל</string>
     <string name="password_reset_email_sent">נשלח אימייל לאיפוס סיסמה</string>
     <string name="failed_to_send_reset_email">שליחת אימייל לאיפוס נכשלה</string>
+    <string-array name="roles_array">
+        <item>Student</item>
+        <item>Instructor</item>
+        <!-- Добавьте другие роли, если нужно -->
+    </string-array>
 </resources>
