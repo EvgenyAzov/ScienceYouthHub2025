@@ -16,6 +16,8 @@
     <string-array name="roles_array">
         <item>Student</item>
         <item>Instructor</item>
-        <!-- Добавьте другие роли, если нужно -->
+        <item>Parent</item>
+        <item>Supervisor</item>
+        <item>Admin</item>
     </string-array>
 </resources>
