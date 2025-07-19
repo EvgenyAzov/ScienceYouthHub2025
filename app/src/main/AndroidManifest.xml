@@ -3,14 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.scienceyouthhub">
 
-    <!-- Разрешения -->
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Добавлено для будущих функций (например, доступ к файлам для фото) -->
+    <!-- Added for future features (e.g., file access for photos) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" /> <!-- Ограничено до Android 13 из-за Scoped Storage -->
+        android:maxSdkVersion="32" /> <!-- Limited to Android 13 due to Scoped Storage -->
 
-    <!-- Указание минимальной версии API -->
+    <!-- Specify minimum API version -->
     <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
 
     <application
@@ -24,7 +24,7 @@
         android:theme="@style/Theme.ScienceYouthHub"
         tools:targetApi="31">
 
-        <!-- LoginActivity как стартовый экран -->
+        <!-- LoginActivity as the start screen -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -39,8 +39,7 @@
             android:name=".MainActivity"
             android:exported="false" />
 
-
-
+        <activity android:name=".RegistrationActivity"/>
 
     </application>
 

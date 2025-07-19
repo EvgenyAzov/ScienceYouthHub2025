@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "ScienceYouthHub.db";
-    private static final int DB_VERSION = 2;  // Увеличили версию для добавления isDirty
+    private static final int DB_VERSION = 2;  // Increased version for adding isDirty
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -36,10 +36,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE Users ADD COLUMN isDirty INTEGER DEFAULT 1");
         }
-        // Если нужно, дроп и recreate для других версий
+        // If needed, drop and recreate for other versions
     }
 
-    // Метод для вставки/обновления пользователя
     public void insertOrUpdateUser(UserModel user) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -47,7 +46,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("type", user.getType());
         values.put("name", user.getName());
         values.put("age", user.getAge());
-        values.put("isDirty", 1);  // Всегда грязный при локальном сохранении
+        values.put("isDirty", 1);
 
         long result = db.insertWithOnConflict("Users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         if (result == -1) {
@@ -55,7 +54,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Получить пользователя по ID
     public UserModel getUserById(String userId) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query("Users", null, "id = ?", new String[]{userId}, null, null, null);
@@ -73,7 +71,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    // Получить "грязных" пользователей для синхронизации
     public List<UserModel> getDirtyUsers() {
         List<UserModel> dirtyUsers = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -91,7 +88,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return dirtyUsers;
     }
 
-    // Сброс isDirty после синхронизации
     public void markUserSynced(String userId) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -99,6 +95,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update("Users", values, "id = ?", new String[]{userId});
     }
 
+    // --- Add this method! ---
     public void logAllUsers() {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM Users", null);
@@ -111,5 +108,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
     }
-
 }

@@ -25,13 +25,13 @@ public class UserRepository {
         localDbHelper = new DatabaseHelper(context);
     }
 
-    // Сохранение пользователя
+    // Save user
     public void saveUser(Context context, UserModel user) {
-        // Всегда сохраняем локально
+        // Always save locally
         localDbHelper.insertOrUpdateUser(user);
 
         if (isOnline(context)) {
-            // Сохраняем в Firestore
+            // Save to Firestore
             Map<String, Object> userData = new HashMap<>();
             userData.put("name", user.getName());
             userData.put("age", user.getAge());
@@ -41,16 +41,16 @@ public class UserRepository {
                     .set(userData, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Log.d("UserRepository", "User synced to Firestore");
-                        localDbHelper.markUserSynced(user.getId());  // Сброс флага
+                        localDbHelper.markUserSynced(user.getId());  // Reset dirty flag
                     })
                     .addOnFailureListener(e -> Log.e("UserRepository", "Sync failed", e));
         } else {
-            // Планируем синхронизацию
+            // Schedule synchronization
             scheduleSync(context);
         }
     }
 
-    // Загрузка пользователя
+    // Load user
     public UserModel getUser(Context context, String userId) {
         UserModel localUser = localDbHelper.getUserById(userId);
         if (localUser != null) {
@@ -58,7 +58,7 @@ public class UserRepository {
         }
 
         if (isOnline(context)) {
-            // Загружаем из Firestore и сохраняем локально
+            // Load from Firestore and save locally
             remoteDb.collection("users").document(userId)
                     .get()
                     .addOnSuccessListener(document -> {
@@ -69,7 +69,7 @@ public class UserRepository {
                                     document.getLong("age").intValue(),
                                     document.getString("type")
                             );
-                            saveUser(context, user);  // Сохраняем локально
+                            saveUser(context, user);  // Save locally
                         }
                     })
                     .addOnFailureListener(e -> Log.e("UserRepository", "Load failed", e));
@@ -78,14 +78,14 @@ public class UserRepository {
         return null;
     }
 
-    // Проверка интернета
+    // Internet connection check
     private boolean isOnline(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnected();
     }
 
-    // Планирование синхронизации
+    // Schedule synchronization
     private void scheduleSync(Context context) {
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)

@@ -4,7 +4,7 @@ public class UserModel {
     private String id;
     private String name;
     private int age;
-    private String type;
+    private String type; // User role
 
     public UserModel(String id, String name, int age, String type) {
         this.id = id;
@@ -13,7 +13,7 @@ public class UserModel {
         this.type = type;
     }
 
-    // Геттеры и сеттеры
+    // Getters
     public String getId() { return id; }
     public String getName() { return name; }
     public int getAge() { return age; }

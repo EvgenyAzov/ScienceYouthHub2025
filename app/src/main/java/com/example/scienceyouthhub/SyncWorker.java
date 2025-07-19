@@ -27,8 +27,8 @@ public class SyncWorker extends Worker {
         List<UserModel> dirtyUsers = dbHelper.getDirtyUsers();
         FirebaseFirestore firestore = FirebaseConfig.getInstance().getFirestore();
 
-        // Используем массив для обхода ограничения "effectively final"
-        boolean[] hasErrorsArr = new boolean[1];  // Инициализируем массив с false
+        // Use an array to bypass "effectively final" restriction
+        boolean[] hasErrorsArr = new boolean[1];  // Initialize the array with false
         CountDownLatch latch = new CountDownLatch(dirtyUsers.size());
 
         for (UserModel user : dirtyUsers) {
@@ -46,24 +46,24 @@ public class SyncWorker extends Worker {
                     })
                     .addOnFailureListener(e -> {
                         Log.e("SyncWorker", "Sync failed for " + user.getId(), e);
-                        hasErrorsArr[0] = true;  // Изменяем первый элемент массива
+                        hasErrorsArr[0] = true;  // Change the first array element
                         latch.countDown();
                     });
         }
 
-        // Ждём завершения всех операций
+        // Wait for all operations to finish
         try {
-            latch.await();  // Блокируем до завершения всех асинхронных задач
+            latch.await();  // Block until all async tasks are done
         } catch (InterruptedException e) {
             Log.e("SyncWorker", "Interrupted while waiting", e);
             return Result.retry();
         }
 
-        // Возвращаем результат
+        // Return result
         if (hasErrorsArr[0]) {
-            return Result.retry();  // Повторить, если были ошибки
+            return Result.retry();  // Retry if there were errors
         } else {
-            return Result.success();  // Успешно, если все синхронизированы
+            return Result.success();  // Success if all users are synced
         }
     }
 }
