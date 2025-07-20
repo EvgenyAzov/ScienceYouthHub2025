@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/dialogActivityName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Название кружка"/>
+        <EditText
+            android:id="@+id/dialogActivityCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Категория"/>
+        <EditText
+            android:id="@+id/dialogActivityAgeRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Возрастной диапазон (например, 12-16)"/>
+        <EditText
+            android:id="@+id/dialogActivityDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Описание"/>
+        <EditText
+            android:id="@+id/dialogActivityDays"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Дни занятий"/>
+        <EditText
+            android:id="@+id/dialogActivityMaxParticipants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Макс. участников"
+            android:inputType="number"/>
+        <Spinner
+            android:id="@+id/dialogActivityInstructor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>

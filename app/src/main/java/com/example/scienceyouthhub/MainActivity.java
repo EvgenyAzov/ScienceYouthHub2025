@@ -15,6 +15,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,12 +27,14 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
 
+    // Чтобы помнить роль
+    private String currentUserRole = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -43,50 +47,70 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseConfig.getInstance().getFirestore();
         FirebaseUser user = auth.getCurrentUser();
 
-        if (user != null) {
-            // Load user data from Firestore
-            db.collection("users").document(user.getUid())
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                String email = user.getEmail();
-                                String role = document.getString("type");
-                                welcomeTextView.setText("Hello, " + email + " (" + role + ")");
-                            } else {
-                                Snackbar.make(findViewById(android.R.id.content), "User data not found", Snackbar.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Log.e("MainActivity", "Failed to load user data", task.getException());
-                            Snackbar.make(findViewById(android.R.id.content), "Error loading data", Snackbar.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
+        if (user == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        // Setup ViewPager with fragments
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle());
-        viewPager.setAdapter(adapter);
+        // 1. Загружаем роль пользователя из Firestore
+        db.collection("users").document(user.getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            String email = user.getEmail();
+                            currentUserRole = document.getString("type");
+                            welcomeTextView.setText("Hello, " + email + " (" + currentUserRole + ")");
+                            // После загрузки роли — инициализация вкладок
+                            setupTabsAndFragments(currentUserRole);
+                        } else {
+                            Snackbar.make(findViewById(android.R.id.content), "User data not found", Snackbar.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Log.e("MainActivity", "Failed to load user data", task.getException());
+                        Snackbar.make(findViewById(android.R.id.content), "Error loading data", Snackbar.LENGTH_SHORT).show();
+                    }
+                });
 
-        // Connect TabLayout to ViewPager
-        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            switch (position) {
-                case 0: tab.setText("Home"); break;
-                case 1: tab.setText("Activities"); break;
-                case 2: tab.setText("Photos"); break;
-                case 3: tab.setText("Feedback"); break;
-            }
-        }).attach();
-
-        // Logout
         logoutButton.setOnClickListener(view -> {
             auth.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finishAffinity();
         });
+    }
+
+    // 2. Настройка вкладок и адаптера по роли пользователя
+    private void setupTabsAndFragments(String role) {
+        // Динамически собираем список фрагментов и названия для вкладок
+        List<String> tabTitles = new ArrayList<>();
+        List<Integer> tabIds = new ArrayList<>();
+
+        tabTitles.add("Home");
+        tabIds.add(0);
+
+        tabTitles.add("Activities");
+        tabIds.add(1);
+
+        if (role != null && (role.equalsIgnoreCase("Admin") || role.equalsIgnoreCase("Руководитель"))) {
+            tabTitles.add("Users");
+            tabIds.add(4); // пусть будет 4 для примера, ты сам определишь id/позицию
+        }
+
+        tabTitles.add("Photos");
+        tabIds.add(2);
+
+        tabTitles.add("Feedback");
+        tabIds.add(3);
+
+        // Свой адаптер ViewPager, который умеет по tabIds создавать разные фрагменты
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle(), tabIds, role);
+        viewPager.setAdapter(adapter);
+
+        // Синхронизация TabLayout и ViewPager
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            tab.setText(tabTitles.get(position));
+        }).attach();
     }
 }

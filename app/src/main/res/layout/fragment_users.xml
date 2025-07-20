@@ -4,17 +4,17 @@
     android:layout_height="match_parent">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/feedbackRecyclerView"
+        android:id="@+id/usersRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="8dp"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addFeedbackFab"
+        android:id="@+id/addUserFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="Добавить отзыв"
+        android:contentDescription="Добавить пользователя"
         android:src="@android:drawable/ic_input_add"/>
 </FrameLayout>

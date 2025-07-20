@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/activityNameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Название"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/activityCategoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Категория"/>
+
+    <TextView
+        android:id="@+id/activityAgeRangeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Возрастной диапазон"/>
+
+    <TextView
+        android:id="@+id/activityInstructorText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Руководитель"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/editActivityBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_edit"
+            android:contentDescription="Редактировать"/>
+        <ImageButton
+            android:id="@+id/deleteActivityBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_delete"
+            android:contentDescription="Удалить"/>
+    </LinearLayout>
+</LinearLayout>
