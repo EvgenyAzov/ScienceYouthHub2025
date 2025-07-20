@@ -1,231 +1,209 @@
 package com.example.scienceyouthhub;
 
 import android.app.AlertDialog;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Base64;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
-import androidx.activity.result.*;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.*;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.*;
 
 public class FeedbackFragment extends Fragment {
-    private RecyclerView recyclerView;
-    private FeedbackAdapter adapter;
+    private RecyclerView feedbackRecyclerView;
+    private FeedbackAdapter feedbackAdapter;
     private List<FeedbackModel> feedbackList = new ArrayList<>();
-    private Map<String, String> userNames = new HashMap<>();
-    private FirebaseFirestore db;
-    private String activityId;
-    private String currentUserId;
-    private String currentUserRole = "User";
 
-    // Для фото:
-    private List<Uri> selectedImageUris = new ArrayList<>();
-    private PhotoPreviewAdapter photoPreviewAdapter;
+    private FloatingActionButton addFeedbackFab;
+    private String selectedActivityId;
+    private String selectedActivityName;
 
-    private final ActivityResultLauncher<Intent> imagePickerLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
-                    selectedImageUris.clear();
-                    if (result.getData().getClipData() != null) {
-                        int count = result.getData().getClipData().getItemCount();
-                        for (int i = 0; i < count; i++) {
-                            selectedImageUris.add(result.getData().getClipData().getItemAt(i).getUri());
-                        }
-                    } else if (result.getData().getData() != null) {
-                        selectedImageUris.add(result.getData().getData());
-                    }
-                    photoPreviewAdapter.setUris(selectedImageUris);
-                }
-            });
+    private List<String> activityIds = new ArrayList<>();
+    private List<String> activityNames = new ArrayList<>();
+    private String userRole = "Admin"; // <-- динамически по своей логике
 
-    @Nullable
+    public FeedbackFragment() {}
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_feedback, container, false);
-        recyclerView = view.findViewById(R.id.feedbackRecyclerView);
-        FloatingActionButton addFab = view.findViewById(R.id.addFeedbackFab);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_feedback, container, false);
 
-        db = FirebaseFirestore.getInstance();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        adapter = new FeedbackAdapter(feedbackList, userId -> userNames.getOrDefault(userId, "—"), this::onDeleteFeedback, currentUserId, currentUserRole);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(adapter);
+        feedbackRecyclerView = v.findViewById(R.id.feedbackRecyclerView);
+        feedbackRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        feedbackAdapter = new FeedbackAdapter(feedbackList, userRole, feedback -> showEditFeedbackDialog(feedback));
+        feedbackRecyclerView.setAdapter(feedbackAdapter);
 
-        // Получить activityId из аргументов
-        this.activityId = getArguments() != null ? getArguments().getString("activityId") : null;
-        if (this.activityId == null) {
-            Toast.makeText(getContext(), "Нет кружка", Toast.LENGTH_SHORT).show();
-            return view;
-        }
+        addFeedbackFab = v.findViewById(R.id.addFeedbackFab);
+        addFeedbackFab.setOnClickListener(view -> showAddFeedbackDialog());
 
-        // Узнать роль пользователя
-        db.collection("users").document(currentUserId).get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                String type = snapshot.getString("type");
-                if (type != null) currentUserRole = type;
-                adapter.setUserRole(currentUserRole);
-            }
-        });
+        loadAllFeedbacks();
 
-        addFab.setOnClickListener(v -> showAddFeedbackDialog());
-
-        loadUsers();
-        loadFeedbacks();
-        return view;
+        return v;
     }
 
-    private void loadUsers() {
-        db.collection("users")
+    private void loadAllFeedbacks() {
+        feedbackList.clear();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("activities")
                 .get()
-                .addOnSuccessListener(usersSnapshot -> {
-                    userNames.clear();
-                    for (DocumentSnapshot doc : usersSnapshot) {
-                        userNames.put(doc.getId(), doc.getString("name"));
+                .addOnSuccessListener(activitySnapshots -> {
+                    for (QueryDocumentSnapshot activityDoc : activitySnapshots) {
+                        String activityId = activityDoc.getId();
+                        String activityName = activityDoc.getString("name");
+                        db.collection("activities")
+                                .document(activityId)
+                                .collection("feedbacks")
+                                .get()
+                                .addOnSuccessListener(feedbackSnapshots -> {
+                                    for (QueryDocumentSnapshot feedbackDoc : feedbackSnapshots) {
+                                        String feedbackId = feedbackDoc.getId();
+                                        String userId = feedbackDoc.getString("userId");
+                                        String userName = feedbackDoc.getString("userName");
+                                        String comment = feedbackDoc.getString("comment");
+                                        int rating = feedbackDoc.getLong("rating") == null ? 0 : feedbackDoc.getLong("rating").intValue();
+                                        if (!TextUtils.isEmpty(comment)) {
+                                            feedbackList.add(new FeedbackModel(feedbackId, activityId, activityName, userId, userName, comment, rating));
+                                        }
+                                    }
+                                    feedbackAdapter.setFeedbacks(feedbackList);
+                                });
                     }
-                    adapter.notifyDataSetChanged();
-                });
-    }
-
-    private void loadFeedbacks() {
-        db.collection("feedbacks")
-                .whereEqualTo("activityId", activityId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    feedbackList.clear();
-                    for (DocumentSnapshot doc : snapshot) {
-                        FeedbackModel feedback = doc.toObject(FeedbackModel.class);
-                        feedbackList.add(feedback);
-                    }
-                    adapter.setFeedbacks(feedbackList);
                 });
     }
 
     private void showAddFeedbackDialog() {
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        View dialogView = inflater.inflate(R.layout.dialog_feedback, null);
-        RatingBar ratingBar = dialogView.findViewById(R.id.feedbackRatingBar);
-        EditText commentInput = dialogView.findViewById(R.id.feedbackComment);
-        Button addPhotoBtn = dialogView.findViewById(R.id.addPhotoBtn);
-        RecyclerView photosRecyclerView = dialogView.findViewById(R.id.photosRecyclerView);
-
-        photoPreviewAdapter = new PhotoPreviewAdapter();
-        photosRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        photosRecyclerView.setAdapter(photoPreviewAdapter);
-
-        addPhotoBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType("image/*");
-            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-            imagePickerLauncher.launch(intent);
-        });
-
-        new AlertDialog.Builder(getContext())
-                .setTitle("Оставить отзыв")
-                .setView(dialogView)
-                .setPositiveButton("Оставить", (d, w) -> {
-                    int score = (int) ratingBar.getRating();
-                    String comment = commentInput.getText().toString().trim();
-                    if (score == 0 || TextUtils.isEmpty(comment)) {
-                        Toast.makeText(getContext(), "Поставьте оценку и напишите отзыв", Toast.LENGTH_SHORT).show();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("activities")
+                .get()
+                .addOnSuccessListener(activitySnapshots -> {
+                    activityIds.clear();
+                    activityNames.clear();
+                    for (QueryDocumentSnapshot doc : activitySnapshots) {
+                        activityIds.add(doc.getId());
+                        activityNames.add(doc.getString("name"));
+                    }
+                    if (activityIds.isEmpty()) {
+                        Toast.makeText(getContext(), "Нет доступных активностей!", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    encodeImagesAndSaveFeedback(comment, score);
-                })
-                .setNegativeButton("Отмена", null)
-                .show();
-    }
+                    View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_feedback, null, false);
+                    Spinner activitySpinner = dialogView.findViewById(R.id.activitySpinner);
+                    RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+                    EditText commentEditText = dialogView.findViewById(R.id.commentEditText);
 
-    private void encodeImagesAndSaveFeedback(String comment, int score) {
-        List<String> photoBase64List = new ArrayList<>();
-        for (Uri uri : selectedImageUris) {
-            String base64 = encodeImageToBase64(requireContext(), uri);
-            if (base64 != null) photoBase64List.add(base64);
-        }
-        saveFeedback(comment, score, photoBase64List);
-    }
+                    ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, activityNames);
+                    activitySpinner.setAdapter(spinnerAdapter);
 
-    private void saveFeedback(String comment, int score, List<String> photoBase64List) {
-        String userId = currentUserId;
-        String id = db.collection("feedbacks").document().getId();
-        FeedbackModel feedback = new FeedbackModel(
-                id, activityId, userId, score, comment, System.currentTimeMillis(), photoBase64List);
-        db.collection("feedbacks").document(id)
-                .set(feedback)
-                .addOnSuccessListener(aVoid -> {
-                    loadFeedbacks();
-                    Toast.makeText(getContext(), "Спасибо за отзыв!", Toast.LENGTH_SHORT).show();
-                    selectedImageUris.clear();
+                    activitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            selectedActivityId = activityIds.get(position);
+                            selectedActivityName = activityNames.get(position);
+                        }
+                        @Override public void onNothingSelected(AdapterView<?> parent) {}
+                    });
+
+                    AlertDialog dialog = new AlertDialog.Builder(getContext())
+                            .setTitle("Добавить отзыв")
+                            .setView(dialogView)
+                            .setPositiveButton("Сохранить", (d, w) -> {
+                                int rating = (int) ratingBar.getRating();
+                                String comment = commentEditText.getText().toString().trim();
+
+                                if (TextUtils.isEmpty(comment)) {
+                                    Toast.makeText(getContext(), "Введите текст отзыва!", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                String userName = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+                                Map<String, Object> data = new HashMap<>();
+                                data.put("comment", comment);
+                                data.put("rating", rating);
+                                data.put("userId", userId);
+                                data.put("userName", userName);
+                                data.put("activityName", selectedActivityName);
+                                data.put("timestamp", System.currentTimeMillis());
+
+                                db.collection("activities")
+                                        .document(selectedActivityId)
+                                        .collection("feedbacks")
+                                        .add(data)
+                                        .addOnSuccessListener(ref -> {
+                                            Toast.makeText(getContext(), "Отзыв добавлен!", Toast.LENGTH_SHORT).show();
+                                            loadAllFeedbacks();
+                                        });
+                            })
+                            .setNegativeButton("Отмена", null)
+                            .create();
+                    dialog.show();
                 });
     }
 
-    // Преобразует Uri в base64-строку
-    public static String encodeImageToBase64(android.content.Context context, Uri imageUri) {
-        try {
-            InputStream inputStream = context.getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-            byte[] bytes = baos.toByteArray();
-            return Base64.encodeToString(bytes, Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    private void showEditFeedbackDialog(FeedbackModel feedback) {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_feedback, null, false);
+        Spinner activitySpinner = dialogView.findViewById(R.id.activitySpinner);
+        RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+        EditText commentEditText = dialogView.findViewById(R.id.commentEditText);
 
-    // Удалить отзыв (admin или свой)
-    private void onDeleteFeedback(FeedbackModel feedback) {
-        db.collection("feedbacks").document(feedback.getId())
-                .delete()
-                .addOnSuccessListener(aVoid -> loadFeedbacks());
-    }
+        // Подготовим список активностей
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("activities")
+                .get()
+                .addOnSuccessListener(activitySnapshots -> {
+                    activityNames.clear();
+                    activityIds.clear();
+                    for (QueryDocumentSnapshot doc : activitySnapshots) {
+                        activityIds.add(doc.getId());
+                        activityNames.add(doc.getString("name"));
+                    }
+                    ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, activityNames);
+                    activitySpinner.setAdapter(spinnerAdapter);
+                    int activityPos = activityNames.indexOf(feedback.getActivityName());
+                    if (activityPos >= 0) activitySpinner.setSelection(activityPos);
 
-    // Мини-адаптер для предпросмотра фото в диалоге
-    private class PhotoPreviewAdapter extends RecyclerView.Adapter<PhotoPreviewAdapter.PhotoViewHolder> {
-        private List<Uri> uris = new ArrayList<>();
-        public void setUris(List<Uri> uris) {
-            this.uris = new ArrayList<>(uris);
-            notifyDataSetChanged();
-        }
-        @NonNull
-        @Override
-        public PhotoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ImageView img = new ImageView(parent.getContext());
-            int size = (int) (64 * parent.getContext().getResources().getDisplayMetrics().density);
-            img.setLayoutParams(new ViewGroup.LayoutParams(size, size));
-            img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            return new PhotoViewHolder(img);
-        }
-        @Override
-        public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
-            holder.img.setImageURI(uris.get(position));
-        }
-        @Override
-        public int getItemCount() { return uris.size(); }
-        class PhotoViewHolder extends RecyclerView.ViewHolder {
-            ImageView img;
-            PhotoViewHolder(@NonNull View itemView) {
-                super(itemView);
-                img = (ImageView) itemView;
-            }
-        }
+                    activitySpinner.setEnabled(false); // нельзя менять кружок
+
+                    ratingBar.setRating(feedback.getRating());
+                    commentEditText.setText(feedback.getComment());
+
+                    new AlertDialog.Builder(getContext())
+                            .setTitle("Редактировать отзыв")
+                            .setView(dialogView)
+                            .setPositiveButton("Сохранить", (d, w) -> {
+                                int rating = (int) ratingBar.getRating();
+                                String comment = commentEditText.getText().toString().trim();
+
+                                if (TextUtils.isEmpty(comment)) {
+                                    Toast.makeText(getContext(), "Введите текст отзыва!", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                Map<String, Object> update = new HashMap<>();
+                                update.put("comment", comment);
+                                update.put("rating", rating);
+
+                                FirebaseFirestore.getInstance()
+                                        .collection("activities")
+                                        .document(feedback.getActivityId())
+                                        .collection("feedbacks")
+                                        .document(feedback.getFeedbackId())
+                                        .update(update)
+                                        .addOnSuccessListener(unused -> {
+                                            Toast.makeText(getContext(), "Отзыв обновлён!", Toast.LENGTH_SHORT).show();
+                                            loadAllFeedbacks();
+                                        });
+                            })
+                            .setNegativeButton("Отмена", null)
+                            .show();
+                });
     }
 }

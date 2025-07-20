@@ -1,41 +1,48 @@
 package com.example.scienceyouthhub;
 
-import java.util.List;
+import java.io.Serializable;
 
-public class FeedbackModel {
-    private String id;
+public class FeedbackModel implements Serializable {
+    private String feedbackId;
     private String activityId;
+    private String activityName;
     private String userId;
-    private int score;
+    private String userName;
     private String comment;
-    private long timestamp;
-    private List<String> photos;
+    private int rating;
+    // Если хочешь — можно добавить List<String> photoBase64 для фото в отзыве
 
     public FeedbackModel() {}
 
-    public FeedbackModel(String id, String activityId, String userId, int score, String comment, long timestamp, List<String> photos) {
-        this.id = id;
+    public FeedbackModel(String feedbackId, String activityId, String activityName,
+                         String userId, String userName, String comment, int rating) {
+        this.feedbackId = feedbackId;
         this.activityId = activityId;
+        this.activityName = activityName;
         this.userId = userId;
-        this.score = score;
+        this.userName = userName;
         this.comment = comment;
-        this.timestamp = timestamp;
-        this.photos = photos;
+        this.rating = rating;
     }
 
-    public String getId() { return id; }
-    public String getActivityId() { return activityId; }
-    public String getUserId() { return userId; }
-    public int getScore() { return score; }
-    public String getComment() { return comment; }
-    public long getTimestamp() { return timestamp; }
-    public List<String> getPhotos() { return photos; }
+    public String getFeedbackId() { return feedbackId; }
+    public void setFeedbackId(String feedbackId) { this.feedbackId = feedbackId; }
 
-    public void setId(String id) { this.id = id; }
+    public String getActivityId() { return activityId; }
     public void setActivityId(String activityId) { this.activityId = activityId; }
+
+    public String getActivityName() { return activityName; }
+    public void setActivityName(String activityName) { this.activityName = activityName; }
+
+    public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
-    public void setScore(int score) { this.score = score; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
-    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
-    public void setPhotos(List<String> photos) { this.photos = photos; }
+
+    public int getRating() { return rating; }
+    public void setRating(int rating) { this.rating = rating; }
 }
