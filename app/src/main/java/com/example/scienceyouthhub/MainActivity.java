@@ -1,116 +1,116 @@
 package com.example.scienceyouthhub;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.snackbar.Snackbar;
+
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView welcomeTextView;
-    private Button logoutButton;
-    private FirebaseAuth auth;
-    private FirebaseFirestore db;
-    private ViewPager2 viewPager;
     private TabLayout tabLayout;
+    private ViewPager2 viewPager;
+    private ViewPagerAdapter viewPagerAdapter;
+    private String userRole;
+    private String userName;
 
-    // Чтобы помнить роль
-    private String currentUserRole = "";
+    private final List<String> tabTitles = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        welcomeTextView = findViewById(R.id.welcomeTextView);
-        logoutButton = findViewById(R.id.logoutButton);
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_pager);
 
-        auth = FirebaseAuth.getInstance();
-        db = FirebaseConfig.getInstance().getFirestore();
-        FirebaseUser user = auth.getCurrentUser();
+        userRole = loadUserRole();
+        userName = loadUserName();
 
-        if (user == null) {
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
-        }
+        setupTabsByRole(userRole);
 
-        // 1. Загружаем роль пользователя из Firestore
-        db.collection("users").document(user.getUid())
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            String email = user.getEmail();
-                            currentUserRole = document.getString("type");
-                            welcomeTextView.setText("Hello, " + email + " (" + currentUserRole + ")");
-                            // После загрузки роли — инициализация вкладок
-                            setupTabsAndFragments(currentUserRole);
-                        } else {
-                            Snackbar.make(findViewById(android.R.id.content), "User data not found", Snackbar.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Log.e("MainActivity", "Failed to load user data", task.getException());
-                        Snackbar.make(findViewById(android.R.id.content), "Error loading data", Snackbar.LENGTH_SHORT).show();
-                    }
-                });
+        viewPagerAdapter = new ViewPagerAdapter(this, tabTitles, userRole);
+        viewPager.setAdapter(viewPagerAdapter);
 
-        logoutButton.setOnClickListener(view -> {
-            auth.signOut();
-            startActivity(new Intent(this, LoginActivity.class));
-            finishAffinity();
-        });
-    }
-
-    // 2. Настройка вкладок и адаптера по роли пользователя
-    private void setupTabsAndFragments(String role) {
-        // Динамически собираем список фрагментов и названия для вкладок
-        List<String> tabTitles = new ArrayList<>();
-        List<Integer> tabIds = new ArrayList<>();
-
-        tabTitles.add("Home");
-        tabIds.add(0);
-
-        tabTitles.add("Activities");
-        tabIds.add(1);
-
-        if (role != null && (role.equalsIgnoreCase("Admin") || role.equalsIgnoreCase("Руководитель"))) {
-            tabTitles.add("Users");
-            tabIds.add(4); // пусть будет 4 для примера, ты сам определишь id/позицию
-        }
-
-        tabTitles.add("Photos");
-        tabIds.add(2);
-
-        tabTitles.add("Feedback");
-        tabIds.add(3);
-
-        // Свой адаптер ViewPager, который умеет по tabIds создавать разные фрагменты
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle(), tabIds, role);
-        viewPager.setAdapter(adapter);
-
-        // Синхронизация TabLayout и ViewPager
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             tab.setText(tabTitles.get(position));
         }).attach();
+
+        Button logoutButton = findViewById(R.id.logoutButton);
+        if (logoutButton != null) {
+            logoutButton.setOnClickListener(v -> logout());
+        }
+
+        // Приветствие: Hello, Admin: Ivan Ivanov
+        TextView welcomeTextView = findViewById(R.id.welcomeTextView);
+        String welcomeText = "Hello";
+        if (userRole != null && !userRole.isEmpty()) {
+            welcomeText += ", " + userRole;
+        }
+        if (userName != null && !userName.isEmpty()) {
+            welcomeText += ": " + userName;
+        }
+        welcomeTextView.setText(welcomeText);
+    }
+
+    private String loadUserRole() {
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String role = prefs.getString("user_role", "Student");
+        // Валидируем роль
+        if (!role.equals("Student") && !role.equals("Instructor") &&
+                !role.equals("Parent") && !role.equals("Admin")) {
+            role = "Student";
+        }
+        return role;
+    }
+
+    private String loadUserName() {
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        return prefs.getString("user_name", "");
+    }
+
+    private void setupTabsByRole(String role) {
+        tabTitles.clear();
+
+        if ("Admin".equals(role)) {
+            tabTitles.add("Кружки");
+            tabTitles.add("Пользователи");
+            tabTitles.add("Отзывы");
+            tabTitles.add("Фотографии");
+        } else if ("Instructor".equals(role)) {
+            tabTitles.add("Кружки");
+            tabTitles.add("Мои студенты");
+            tabTitles.add("Отзывы");
+        } else if ("Student".equals(role)) {
+            tabTitles.add("Кружки");
+            tabTitles.add("Мои записи");
+            tabTitles.add("Отзывы");
+        } else if ("Parent".equals(role)) {
+            tabTitles.add("Кружки");
+            tabTitles.add("Отзывы");
+        } else {
+            tabTitles.add("Кружки");
+        }
+    }
+
+    private void logout() {
+        FirebaseAuth.getInstance().signOut();
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        prefs.edit().remove("user_role").remove("user_name").apply();
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

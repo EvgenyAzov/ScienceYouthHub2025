@@ -2,50 +2,61 @@ package com.example.scienceyouthhub;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Lifecycle;
+import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
+
 import java.util.List;
 
 public class ViewPagerAdapter extends FragmentStateAdapter {
 
-    private final List<Integer> tabIds;
+    private final List<String> tabTitles;
     private final String role;
 
-    // tabIds например: [0, 1, 2, 3] или [0, 1, 4, 2, 3]
-    // где 0 = Home, 1 = Activities, 2 = Photos, 3 = Feedback, 4 = Users (для админа)
-    public ViewPagerAdapter(@NonNull FragmentManager fragmentManager,
-                            @NonNull Lifecycle lifecycle,
-                            List<Integer> tabIds,
-                            String role) {
-        super(fragmentManager, lifecycle);
-        this.tabIds = tabIds;
+    public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity, List<String> tabTitles, String role) {
+        super(fragmentActivity);
+        this.tabTitles = tabTitles;
         this.role = role;
     }
 
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        int tabId = tabIds.get(position);
-        switch (tabId) {
-            case 0:
-                return new HomeFragment();
-            case 1:
-                return new ActivitiesFragment();
-            case 2:
-                return new PhotosFragment();
-            case 3:
-                return new FeedbackFragment();
-            case 4:
-                // Только для Admin/Руководитель (создай свой UsersFragment)
-                return new UsersFragment();
-            default:
-                return new HomeFragment();
+        // Сопоставляем вкладки с фрагментами по роли и индексу
+        if (role.equals("Admin")) {
+            switch (position) {
+                case 0: return new ActivitiesFragment();    // Кружки
+                case 1: return new UsersFragment();         // Пользователи
+                case 2: return new FeedbackFragment();      // Отзывы
+                case 3: return new PhotosFragment();        // Фотографии
+                default: return new ActivitiesFragment();
+            }
+        } else if (role.equals("Instructor")) {
+            switch (position) {
+                case 0: return new ActivitiesFragment();    // Кружки
+                case 1: return new UsersFragment();         // Мои студенты (или сделай отдельный фрагмент, если логика другая)
+                case 2: return new FeedbackFragment();      // Отзывы
+                default: return new ActivitiesFragment();
+            }
+        } else if (role.equals("Student")) {
+            switch (position) {
+                case 0: return new ActivitiesFragment();    // Кружки
+                case 1: return new ActivitiesFragment();    // Мои записи (или отдельный MyEnrollmentsFragment)
+                case 2: return new FeedbackFragment();      // Отзывы
+                default: return new ActivitiesFragment();
+            }
+        } else if (role.equals("Parent")) {
+            switch (position) {
+                case 0: return new ActivitiesFragment();    // Кружки
+                case 1: return new FeedbackFragment();      // Отзывы
+                default: return new ActivitiesFragment();
+            }
+        } else {
+            return new ActivitiesFragment();
         }
     }
 
     @Override
     public int getItemCount() {
-        return tabIds.size();
+        return tabTitles.size();
     }
 }

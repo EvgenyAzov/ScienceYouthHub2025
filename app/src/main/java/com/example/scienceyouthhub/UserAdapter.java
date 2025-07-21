@@ -1,5 +1,6 @@
 package com.example.scienceyouthhub;
 
+import android.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
@@ -43,8 +45,22 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.name.setText(user.getName());
         holder.role.setText(user.getType());
         holder.age.setText(String.valueOf(user.getAge()));
+
         holder.editBtn.setOnClickListener(v -> listener.onEdit(user));
-        holder.deleteBtn.setOnClickListener(v -> listener.onDelete(user));
+
+        holder.deleteBtn.setOnClickListener(v -> {
+            // AlertDialog для подтверждения удаления
+            new AlertDialog.Builder(holder.itemView.getContext())
+                    .setTitle("Удалить пользователя")
+                    .setMessage("Вы действительно хотите удалить этого пользователя?")
+                    .setPositiveButton("Удалить", (dialog, which) -> {
+                        // Передаём дальше в listener, удаление и snackbar в activity/fragment
+                        listener.onDelete(user);
+                        Snackbar.make(holder.itemView, "Пользователь удалён", Snackbar.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Отмена", null)
+                    .show();
+        });
     }
 
     @Override

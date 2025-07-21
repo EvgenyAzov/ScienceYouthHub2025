@@ -1,5 +1,6 @@
 package com.example.scienceyouthhub;
 
+import android.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import java.util.List;
 
 public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder> {
@@ -44,8 +46,21 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         holder.category.setText(activity.getCategory());
         holder.ageRange.setText(activity.getAgeRange());
         holder.instructor.setText(activity.getInstructorName());
+
         holder.editBtn.setOnClickListener(v -> listener.onEdit(activity));
-        holder.deleteBtn.setOnClickListener(v -> listener.onDelete(activity));
+
+        holder.deleteBtn.setOnClickListener(v -> {
+            // AlertDialog для подтверждения удаления
+            new AlertDialog.Builder(holder.itemView.getContext())
+                    .setTitle("Удалить кружок")
+                    .setMessage("Вы действительно хотите удалить этот кружок?")
+                    .setPositiveButton("Удалить", (dialog, which) -> {
+                        listener.onDelete(activity);
+                        Snackbar.make(holder.itemView, "Кружок удалён", Snackbar.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Отмена", null)
+                    .show();
+        });
     }
 
     @Override

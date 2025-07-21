@@ -19,7 +19,6 @@
         <item>Student</item>
         <item>Instructor</item>
         <item>Parent</item>
-        <item>Supervisor</item>
         <item>Admin</item>
     </string-array>
 </resources>

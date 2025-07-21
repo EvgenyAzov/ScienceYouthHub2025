@@ -1,5 +1,6 @@
 package com.example.scienceyouthhub;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
@@ -11,13 +12,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder> {
 
     private List<PhotoModel> photos;
-    private String currentUserRole; // Передавать при создании адаптера
+    private String currentUserRole;
     private PhotoActionListener actionListener;
 
     public interface PhotoActionListener {
@@ -45,8 +47,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
     @Override
     public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
         PhotoModel photo = photos.get(position);
+        Context context = holder.itemView.getContext();
 
-        // Декодирование base64
+        // Decode base64
         byte[] bytes = Base64.decode(photo.getPhotoBase64(), Base64.DEFAULT);
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         holder.imageView.setImageBitmap(bitmap);
@@ -61,15 +64,32 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             holder.editBtn.setOnClickListener(v -> {
                 if (actionListener != null) actionListener.onEdit(photo);
             });
+
             holder.deleteBtn.setOnClickListener(v -> {
-                FirebaseFirestore.getInstance()
-                        .collection("activities")
-                        .document(photo.getActivityId())
-                        .collection("photos")
-                        .document(photo.getPhotoId())
-                        .delete();
-                photos.remove(position);
-                notifyItemRemoved(position);
+                // AlertDialog before delete
+                new android.app.AlertDialog.Builder(context)
+                        .setTitle("Удалить фото")
+                        .setMessage("Вы действительно хотите удалить это фото?")
+                        .setPositiveButton("Удалить", (dialog, which) -> {
+                            FirebaseFirestore.getInstance()
+                                    .collection("activities")
+                                    .document(photo.getActivityId())
+                                    .collection("photos")
+                                    .document(photo.getPhotoId())
+                                    .delete()
+                                    .addOnSuccessListener(unused -> {
+                                        int pos = holder.getAdapterPosition();
+                                        if (pos != RecyclerView.NO_POSITION) {
+                                            photos.remove(pos);
+                                            notifyItemRemoved(pos);
+                                            Snackbar.make(holder.itemView, "Фото удалено", Snackbar.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Snackbar.make(holder.itemView, "Ошибка удаления", Snackbar.LENGTH_SHORT).show());
+                        })
+                        .setNegativeButton("Отмена", null)
+                        .show();
             });
         } else {
             holder.editBtn.setVisibility(View.GONE);
