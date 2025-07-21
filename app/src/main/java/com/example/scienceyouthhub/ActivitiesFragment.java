@@ -1,6 +1,8 @@
 package com.example.scienceyouthhub;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
 
 import java.util.ArrayList;
@@ -29,6 +32,11 @@ public class ActivitiesFragment extends Fragment {
     private FirebaseFirestore db;
     private Map<String, String> instructorMap = new HashMap<>(); // instructorId -> name
 
+    // Данные залогиненного пользователя
+    private String userRole;
+    private String userId;
+    private String userName;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -38,7 +46,15 @@ public class ActivitiesFragment extends Fragment {
         FloatingActionButton addFab = view.findViewById(R.id.addActivityFab);
 
         db = FirebaseFirestore.getInstance();
-        adapter = new ActivityAdapter(activityList, new ActivityAdapter.OnActivityActionListener() {
+
+        // Получаем роль, имя и id пользователя
+        SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        userRole = prefs.getString("user_role", "");
+        userName = prefs.getString("user_name", "");
+        userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+
+        adapter = new ActivityAdapter(activityList, requireContext(), new ActivityAdapter.OnActivityActionListener() {
             @Override
             public void onEdit(ActivityModel activity) { showActivityDialog(activity, true); }
             @Override
@@ -47,31 +63,36 @@ public class ActivitiesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // Исправленный обработчик: диалог открывается только после загрузки инструкторов
-        addFab.setOnClickListener(v -> {
-            db.collection("users")
-                    .whereEqualTo("type", "Instructor")
-                    .get()
-                    .addOnSuccessListener(userSnapshot -> {
-                        instructorMap.clear();
-                        for (DocumentSnapshot doc : userSnapshot) {
-                            String id = doc.getId();
-                            String name = doc.getString("name");
-                            instructorMap.put(id, name);
-                        }
-                        showActivityDialog(null, false); // Открываем после загрузки!
-                    })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Ошибка загрузки руководителей", Toast.LENGTH_SHORT).show()
-                    );
-        });
+        // --- FAB виден только для Admin и Instructor
+        if ("Admin".equals(userRole) || "Instructor".equals(userRole)) {
+            addFab.setVisibility(View.VISIBLE);
+            addFab.setOnClickListener(v -> {
+                db.collection("users")
+                        .whereEqualTo("type", "Instructor")
+                        .get()
+                        .addOnSuccessListener(userSnapshot -> {
+                            instructorMap.clear();
+                            for (DocumentSnapshot doc : userSnapshot) {
+                                String id = doc.getId();
+                                String name = doc.getString("name");
+                                instructorMap.put(id, name);
+                            }
+                            showActivityDialog(null, false);
+                        })
+                        .addOnFailureListener(e ->
+                                Toast.makeText(getContext(), "Ошибка загрузки руководителей", Toast.LENGTH_SHORT).show()
+                        );
+            });
+        } else {
+            addFab.setVisibility(View.GONE);
+        }
 
         loadActivities();
         return view;
     }
 
     private void loadActivities() {
-        // Сначала загрузим всех руководителей (для отображения имен в списке)
+        // Загружаем всех руководителей для отображения имён
         db.collection("users")
                 .whereEqualTo("type", "Instructor")
                 .get()
@@ -82,7 +103,7 @@ public class ActivitiesFragment extends Fragment {
                         String name = doc.getString("name");
                         instructorMap.put(id, name);
                     }
-                    // Теперь загрузим кружки
+                    // Теперь загружаем кружки
                     db.collection("activities")
                             .get()
                             .addOnSuccessListener(activitySnapshot -> {
@@ -114,12 +135,29 @@ public class ActivitiesFragment extends Fragment {
         Spinner instructorSpinner = dialogView.findViewById(R.id.dialogActivityInstructor);
 
         // Формируем список руководителей для спиннера
-        List<String> instructorNames = new ArrayList<>(instructorMap.values());
         List<String> instructorIds = new ArrayList<>(instructorMap.keySet());
-        ArrayAdapter<String> instrAdapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_spinner_item, instructorNames);
-        instrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        instructorSpinner.setAdapter(instrAdapter);
+        List<String> instructorNames = new ArrayList<>(instructorMap.values());
+        ArrayAdapter<String> instrAdapter;
+
+        // Если Instructor — только он сам, выбор невозможен
+        if ("Instructor".equals(userRole)) {
+            instructorIds.clear();
+            instructorNames.clear();
+            instructorIds.add(userId);
+            instructorNames.add(userName);
+
+            instrAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, instructorNames);
+            instrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            instructorSpinner.setAdapter(instrAdapter);
+            instructorSpinner.setSelection(0);
+            instructorSpinner.setEnabled(false); // блокируем выбор
+        } else {
+            // Для Admin — список всех инструкторов
+            instrAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, instructorNames);
+            instrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            instructorSpinner.setAdapter(instrAdapter);
+            instructorSpinner.setEnabled(true);
+        }
 
         if (activity != null) {
             nameInput.setText(activity.getName());
@@ -151,6 +189,7 @@ public class ActivitiesFragment extends Fragment {
                         Toast.makeText(getContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
                         return;
                     }
+
                     String instructorId = instructorIds.get(instrIndex);
                     String instructorName = instructorNames.get(instrIndex);
 
