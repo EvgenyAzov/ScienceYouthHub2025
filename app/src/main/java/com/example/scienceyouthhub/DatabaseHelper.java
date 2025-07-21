@@ -3,8 +3,7 @@ package com.example.scienceyouthhub;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.*;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ import java.util.List;
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "ScienceYouthHub.db";
-    private static final int DB_VERSION = 2;  // Increased version for adding isDirty
+    private static final int DB_VERSION = 3;  // Была 2, теперь 3 из-за parentId
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -23,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE Users (id TEXT PRIMARY KEY, type TEXT, name TEXT, age INTEGER, isDirty INTEGER DEFAULT 1)");
+        db.execSQL("CREATE TABLE Users (id TEXT PRIMARY KEY, type TEXT, name TEXT, age INTEGER, parentId TEXT, isDirty INTEGER DEFAULT 1)");
         db.execSQL("CREATE TABLE Activities (id TEXT PRIMARY KEY, name TEXT, category TEXT, ageRange TEXT, description TEXT, days TEXT, maxParticipants INTEGER, instructorId TEXT)");
         db.execSQL("CREATE TABLE UserActivities (userId TEXT, activityId TEXT, PRIMARY KEY (userId, activityId))");
         db.execSQL("CREATE TABLE Feedbacks (id TEXT PRIMARY KEY, activityId TEXT, userId TEXT, score INTEGER, comment TEXT)");
@@ -36,7 +35,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE Users ADD COLUMN isDirty INTEGER DEFAULT 1");
         }
-        // If needed, drop and recreate for other versions
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE Users ADD COLUMN parentId TEXT");
+        }
     }
 
     public void insertOrUpdateUser(UserModel user) {
@@ -47,6 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("name", user.getName());
         values.put("age", user.getAge());
         values.put("isDirty", 1);
+        values.put("parentId", user.getParentId()); // Добавлено
 
         long result = db.insertWithOnConflict("Users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         if (result == -1) {
@@ -62,7 +64,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     cursor.getString(cursor.getColumnIndexOrThrow("id")),
                     cursor.getString(cursor.getColumnIndexOrThrow("name")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("age")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("type"))
+                    cursor.getString(cursor.getColumnIndexOrThrow("type")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("parentId")),
+                    null // myActivities
             );
             cursor.close();
             return user;
@@ -80,7 +84,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     cursor.getString(cursor.getColumnIndexOrThrow("id")),
                     cursor.getString(cursor.getColumnIndexOrThrow("name")),
                     cursor.getInt(cursor.getColumnIndexOrThrow("age")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("type"))
+                    cursor.getString(cursor.getColumnIndexOrThrow("type")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("parentId")),
+                    null // myActivities
             );
             dirtyUsers.add(user);
         }
@@ -104,7 +110,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + ", type=" + cursor.getString(1)
                     + ", name=" + cursor.getString(2)
                     + ", age=" + cursor.getInt(3)
-                    + ", isDirty=" + cursor.getInt(4));
+                    + ", parentId=" + cursor.getString(4)
+                    + ", isDirty=" + cursor.getInt(5));
         }
         cursor.close();
     }

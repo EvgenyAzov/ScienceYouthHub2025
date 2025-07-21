@@ -6,6 +6,16 @@
     android:padding="8dp"
     android:background="@android:color/white">
 
+    <Button
+        android:id="@+id/joinActivityBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Записаться"
+        android:visibility="gone"
+        android:layout_marginStart="8dp"/>
+
+
+
     <TextView
         android:id="@+id/activityNameText"
         android:layout_width="wrap_content"

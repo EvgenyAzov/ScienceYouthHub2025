@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             tabTitles.add("Отзывы");
         } else if ("Parent".equals(role)) {
             tabTitles.add("Кружки");
+            tabTitles.add("Мои дети");    // <<<<<< Добавлено!
             tabTitles.add("Отзывы");
         } else {
             tabTitles.add("Кружки");

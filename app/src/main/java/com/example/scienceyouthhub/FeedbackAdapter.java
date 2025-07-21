@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
@@ -17,16 +18,20 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
 
     private List<FeedbackModel> feedbacks;
     private String currentUserRole;
+    private String currentUserId;
     private FeedbackActionListener actionListener;
 
     public interface FeedbackActionListener {
         void onEdit(FeedbackModel feedback);
     }
 
-    public FeedbackAdapter(List<FeedbackModel> feedbacks, String userRole, FeedbackActionListener listener) {
+    public FeedbackAdapter(List<FeedbackModel> feedbacks, String userRole, Context context, FeedbackActionListener listener) {
         this.feedbacks = feedbacks;
         this.currentUserRole = userRole;
         this.actionListener = listener;
+        // Получаем текущий userId для сравнения с автором отзыва
+        this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
     }
 
     public void setFeedbacks(List<FeedbackModel> feedbacks) {
@@ -51,14 +56,33 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
         holder.commentTextView.setText(feedback.getComment());
         holder.ratingBar.setRating(feedback.getRating());
 
+        // --- Логика отображения иконок для разных ролей ---
+        boolean canEdit = false;
+        boolean canDelete = false;
+
         if ("Admin".equals(currentUserRole)) {
-            holder.editBtn.setVisibility(View.VISIBLE);
-            holder.deleteBtn.setVisibility(View.VISIBLE);
+            canEdit = true;
+            canDelete = true;
+        } else if (("Student".equals(currentUserRole) || "Parent".equals(currentUserRole))
+                && feedback.getUserId() != null
+                && feedback.getUserId().equals(currentUserId)) {
+            // Можно добавить свою логику для Student/Parent — редактировать и удалять только свои отзывы
+            canEdit = true;
+            canDelete = true;
+        }
+        // Instructor — всегда false (только просмотр)
 
-            holder.editBtn.setOnClickListener(v -> {
-                if (actionListener != null) actionListener.onEdit(feedback);
-            });
+        holder.editBtn.setVisibility(canEdit ? View.VISIBLE : View.GONE);
+        holder.deleteBtn.setVisibility(canDelete ? View.VISIBLE : View.GONE);
 
+        holder.editBtn.setOnClickListener(null);
+        holder.deleteBtn.setOnClickListener(null);
+
+        if (canEdit && actionListener != null) {
+            holder.editBtn.setOnClickListener(v -> actionListener.onEdit(feedback));
+        }
+
+        if (canDelete) {
             holder.deleteBtn.setOnClickListener(v -> {
                 new android.app.AlertDialog.Builder(context)
                         .setTitle("Удалить отзыв")
@@ -84,9 +108,6 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
                         .setNegativeButton("Отмена", null)
                         .show();
             });
-        } else {
-            holder.editBtn.setVisibility(View.GONE);
-            holder.deleteBtn.setVisibility(View.GONE);
         }
     }
 

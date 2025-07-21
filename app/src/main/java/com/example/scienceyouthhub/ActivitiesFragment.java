@@ -19,10 +19,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ActivitiesFragment extends Fragment {
 
@@ -30,7 +27,8 @@ public class ActivitiesFragment extends Fragment {
     private ActivityAdapter adapter;
     private List<ActivityModel> activityList = new ArrayList<>();
     private FirebaseFirestore db;
-    private Map<String, String> instructorMap = new HashMap<>(); // instructorId -> name
+    private Map<String, String> instructorMap = new HashMap<>();
+    private List<String> myActivities = new ArrayList<>(); // кружки студента
 
     // Данные залогиненного пользователя
     private String userRole;
@@ -87,8 +85,28 @@ public class ActivitiesFragment extends Fragment {
             addFab.setVisibility(View.GONE);
         }
 
-        loadActivities();
+        // Загружаем кружки студента, если он Student
+        if ("Student".equals(userRole)) {
+            loadMyActivitiesAndActivities();
+        } else {
+            loadActivities(); // для других ролей
+        }
+
         return view;
+    }
+
+    private void loadMyActivitiesAndActivities() {
+        if (TextUtils.isEmpty(userId)) return;
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    myActivities.clear();
+                    if (doc.contains("myActivities")) {
+                        myActivities = (List<String>) doc.get("myActivities");
+                    }
+                    adapter.setMyActivities(myActivities == null ? new ArrayList<>() : myActivities);
+                    loadActivities();
+                });
     }
 
     private void loadActivities() {
@@ -111,13 +129,16 @@ public class ActivitiesFragment extends Fragment {
                                 for (DocumentSnapshot doc : activitySnapshot) {
                                     ActivityModel activity = doc.toObject(ActivityModel.class);
                                     if (activity != null) {
-                                        // Присваиваем имя руководителя для показа
                                         String instrName = instructorMap.get(activity.getInstructorId());
                                         activity.setInstructorName(instrName != null ? instrName : "—");
                                         activityList.add(activity);
                                     }
                                 }
                                 adapter.setActivities(activityList);
+                                // обновляем список кружков в адаптере (для Student)
+                                if ("Student".equals(userRole)) {
+                                    adapter.setMyActivities(myActivities == null ? new ArrayList<>() : myActivities);
+                                }
                             });
                 });
     }
@@ -150,9 +171,8 @@ public class ActivitiesFragment extends Fragment {
             instrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             instructorSpinner.setAdapter(instrAdapter);
             instructorSpinner.setSelection(0);
-            instructorSpinner.setEnabled(false); // блокируем выбор
+            instructorSpinner.setEnabled(false);
         } else {
-            // Для Admin — список всех инструкторов
             instrAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, instructorNames);
             instrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             instructorSpinner.setAdapter(instrAdapter);
@@ -166,7 +186,6 @@ public class ActivitiesFragment extends Fragment {
             descriptionInput.setText(activity.getDescription());
             daysInput.setText(activity.getDays());
             maxParticipantsInput.setText(String.valueOf(activity.getMaxParticipants()));
-            // Выбираем руководителя по id
             int idx = instructorIds.indexOf(activity.getInstructorId());
             if (idx >= 0) instructorSpinner.setSelection(idx);
         }

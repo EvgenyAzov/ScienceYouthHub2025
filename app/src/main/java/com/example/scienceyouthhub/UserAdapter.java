@@ -1,6 +1,8 @@
 package com.example.scienceyouthhub;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
@@ -20,10 +23,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
     private List<UserModel> users;
     private final OnUserActionListener listener;
+    private final String userRole;
 
-    public UserAdapter(List<UserModel> users, OnUserActionListener listener) {
+    public UserAdapter(List<UserModel> users, Context context, OnUserActionListener listener) {
         this.users = users;
         this.listener = listener;
+        SharedPreferences prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        this.userRole = prefs.getString("user_role", "Student");
     }
 
     public void setUsers(List<UserModel> users) {
@@ -46,21 +52,28 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.role.setText(user.getType());
         holder.age.setText(String.valueOf(user.getAge()));
 
-        holder.editBtn.setOnClickListener(v -> listener.onEdit(user));
+        // Показывать кнопки только для admin
+        if ("Admin".equals(userRole)) {
+            holder.editBtn.setVisibility(View.VISIBLE);
+            holder.deleteBtn.setVisibility(View.VISIBLE);
 
-        holder.deleteBtn.setOnClickListener(v -> {
-            // AlertDialog для подтверждения удаления
-            new AlertDialog.Builder(holder.itemView.getContext())
-                    .setTitle("Удалить пользователя")
-                    .setMessage("Вы действительно хотите удалить этого пользователя?")
-                    .setPositiveButton("Удалить", (dialog, which) -> {
-                        // Передаём дальше в listener, удаление и snackbar в activity/fragment
-                        listener.onDelete(user);
-                        Snackbar.make(holder.itemView, "Пользователь удалён", Snackbar.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Отмена", null)
-                    .show();
-        });
+            holder.editBtn.setOnClickListener(v -> listener.onEdit(user));
+
+            holder.deleteBtn.setOnClickListener(v -> {
+                new AlertDialog.Builder(holder.itemView.getContext())
+                        .setTitle("Удалить пользователя")
+                        .setMessage("Вы действительно хотите удалить этого пользователя?")
+                        .setPositiveButton("Удалить", (dialog, which) -> {
+                            listener.onDelete(user);
+                            Snackbar.make(holder.itemView, "Пользователь удалён", Snackbar.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("Отмена", null)
+                        .show();
+            });
+        } else {
+            holder.editBtn.setVisibility(View.GONE);
+            holder.deleteBtn.setVisibility(View.GONE);
+        }
     }
 
     @Override

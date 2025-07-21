@@ -1,6 +1,8 @@
 package com.example.scienceyouthhub;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -26,6 +28,7 @@ public class UsersFragment extends Fragment {
     private UserAdapter adapter;
     private List<UserModel> userList = new ArrayList<>();
     private FirebaseFirestore db;
+    private String userRole;
 
     @Nullable
     @Override
@@ -36,16 +39,31 @@ public class UsersFragment extends Fragment {
         FloatingActionButton addFab = view.findViewById(R.id.addUserFab);
 
         db = FirebaseFirestore.getInstance();
-        adapter = new UserAdapter(userList, new UserAdapter.OnUserActionListener() {
+
+        // Получаем userRole
+        SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        userRole = prefs.getString("user_role", "Student");
+
+        adapter = new UserAdapter(userList, requireContext(), new UserAdapter.OnUserActionListener() {
             @Override
-            public void onEdit(UserModel user) { showUserDialog(user, true); }
+            public void onEdit(UserModel user) {
+                if ("Admin".equals(userRole)) showUserDialog(user, true);
+            }
             @Override
-            public void onDelete(UserModel user) { deleteUser(user); }
+            public void onDelete(UserModel user) {
+                if ("Admin".equals(userRole)) deleteUser(user);
+            }
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        addFab.setOnClickListener(v -> showUserDialog(null, false));
+        // FAB только для admin
+        if ("Admin".equals(userRole)) {
+            addFab.setVisibility(View.VISIBLE);
+            addFab.setOnClickListener(v -> showUserDialog(null, false));
+        } else {
+            addFab.setVisibility(View.GONE);
+        }
 
         loadUsers();
         return view;
@@ -65,6 +83,8 @@ public class UsersFragment extends Fragment {
     }
 
     private void showUserDialog(@Nullable UserModel user, boolean isEdit) {
+        if (!"Admin".equals(userRole)) return;
+
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View dialogView = inflater.inflate(R.layout.dialog_user, null);
         EditText emailInput = dialogView.findViewById(R.id.dialogUserEmail);
@@ -81,17 +101,15 @@ public class UsersFragment extends Fragment {
         if (user != null) {
             nameInput.setText(user.getName());
             ageInput.setText(String.valueOf(user.getAge()));
-            // Роль в спиннере
             for (int i = 0; i < rolesAdapter.getCount(); i++) {
                 if (rolesAdapter.getItem(i).toString().equals(user.getType())) {
                     roleSpinner.setSelection(i);
                     break;
                 }
             }
-            // Email нельзя редактировать
-            emailInput.setText(user.getId()); // если id == email (или подставь поле email)
+            emailInput.setText(user.getId());
             emailInput.setEnabled(false);
-            passwordInput.setVisibility(View.GONE); // не меняем пароль при редактировании
+            passwordInput.setVisibility(View.GONE);
         }
 
         AlertDialog dialog = new AlertDialog.Builder(getContext())
@@ -112,7 +130,6 @@ public class UsersFragment extends Fragment {
                     int age = Integer.parseInt(ageStr);
 
                     if (!isEdit) {
-                        // Новый пользователь — регистрируем через FirebaseAuth
                         FirebaseAuth.getInstance()
                                 .createUserWithEmailAndPassword(email, password)
                                 .addOnSuccessListener(authResult -> {
@@ -129,7 +146,6 @@ public class UsersFragment extends Fragment {
                                         Toast.makeText(getContext(), "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                                 );
                     } else {
-                        // Редактируем только Firestore-данные
                         String userId = user.getId();
                         UserModel updatedUser = new UserModel(userId, name, age, role);
                         db.collection("users").document(userId)
@@ -146,6 +162,8 @@ public class UsersFragment extends Fragment {
     }
 
     private void deleteUser(UserModel user) {
+        if (!"Admin".equals(userRole)) return;
+
         db.collection("users").document(user.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {

@@ -1,6 +1,8 @@
 package com.example.scienceyouthhub;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,20 +16,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
+
 import java.util.*;
 
 public class FeedbackFragment extends Fragment {
     private RecyclerView feedbackRecyclerView;
     private FeedbackAdapter feedbackAdapter;
     private List<FeedbackModel> feedbackList = new ArrayList<>();
-
     private FloatingActionButton addFeedbackFab;
     private String selectedActivityId;
     private String selectedActivityName;
-
     private List<String> activityIds = new ArrayList<>();
     private List<String> activityNames = new ArrayList<>();
-    private String userRole = "Admin"; // <-- динамически по своей логике
+    private List<String> myActivities = new ArrayList<>();
+
+    private String userRole;
+    private String currentUserId;
 
     public FeedbackFragment() {}
 
@@ -35,17 +39,49 @@ public class FeedbackFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_feedback, container, false);
 
+        SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        userRole = prefs.getString("user_role", "Student");
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+
         feedbackRecyclerView = v.findViewById(R.id.feedbackRecyclerView);
         feedbackRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        feedbackAdapter = new FeedbackAdapter(feedbackList, userRole, feedback -> showEditFeedbackDialog(feedback));
+        feedbackAdapter = new FeedbackAdapter(feedbackList, userRole, getContext(), feedback -> showEditFeedbackDialog(feedback));
         feedbackRecyclerView.setAdapter(feedbackAdapter);
 
         addFeedbackFab = v.findViewById(R.id.addFeedbackFab);
-        addFeedbackFab.setOnClickListener(view -> showAddFeedbackDialog());
+
+        if ("Instructor".equals(userRole)) {
+            addFeedbackFab.setVisibility(View.GONE);
+        } else {
+            addFeedbackFab.setVisibility(View.VISIBLE);
+            addFeedbackFab.setOnClickListener(view -> {
+                if ("Student".equals(userRole)) {
+                    loadMyActivitiesThenShowDialog();
+                } else {
+                    showAddFeedbackDialog(null, null);
+                }
+            });
+        }
 
         loadAllFeedbacks();
 
         return v;
+    }
+
+    // === Для Student ===
+    private void loadMyActivitiesThenShowDialog() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(currentUserId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    myActivities = (List<String>) doc.get("myActivities");
+                    if (myActivities == null || myActivities.isEmpty()) {
+                        Toast.makeText(getContext(), "Вы не записаны ни в один кружок!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    showAddFeedbackDialog(myActivities, null);
+                });
     }
 
     private void loadAllFeedbacks() {
@@ -78,7 +114,12 @@ public class FeedbackFragment extends Fragment {
                 });
     }
 
-    private void showAddFeedbackDialog() {
+    /**
+     * Показываем диалог добавления отзыва.
+     * @param allowedActivityIds - только для Student (ограниченный список кружков)
+     * @param allowedActivityNames - если есть заранее список имён кружков (можно null)
+     */
+    private void showAddFeedbackDialog(List<String> allowedActivityIds, List<String> allowedActivityNames) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("activities")
                 .get()
@@ -86,11 +127,16 @@ public class FeedbackFragment extends Fragment {
                     activityIds.clear();
                     activityNames.clear();
                     for (QueryDocumentSnapshot doc : activitySnapshots) {
-                        activityIds.add(doc.getId());
-                        activityNames.add(doc.getString("name"));
+                        String id = doc.getId();
+                        String name = doc.getString("name");
+                        // --- Фильтрация по доступным кружкам для Student
+                        if (allowedActivityIds == null || allowedActivityIds.contains(id)) {
+                            activityIds.add(id);
+                            activityNames.add(name);
+                        }
                     }
                     if (activityIds.isEmpty()) {
-                        Toast.makeText(getContext(), "Нет доступных активностей!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Нет доступных кружков для отзыва!", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_feedback, null, false);
@@ -122,7 +168,7 @@ public class FeedbackFragment extends Fragment {
                                     return;
                                 }
 
-                                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                String userId = currentUserId;
                                 String userName = FirebaseAuth.getInstance().getCurrentUser().getEmail();
 
                                 Map<String, Object> data = new HashMap<>();
@@ -149,12 +195,20 @@ public class FeedbackFragment extends Fragment {
     }
 
     private void showEditFeedbackDialog(FeedbackModel feedback) {
+        boolean canEdit = "Admin".equals(userRole)
+                || (("Student".equals(userRole) || "Parent".equals(userRole))
+                && feedback.getUserId() != null
+                && feedback.getUserId().equals(currentUserId));
+        if (!canEdit) {
+            Toast.makeText(getContext(), "Недостаточно прав для редактирования!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_feedback, null, false);
         Spinner activitySpinner = dialogView.findViewById(R.id.activitySpinner);
         RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
         EditText commentEditText = dialogView.findViewById(R.id.commentEditText);
 
-        // Подготовим список активностей
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("activities")
                 .get()
@@ -170,7 +224,7 @@ public class FeedbackFragment extends Fragment {
                     int activityPos = activityNames.indexOf(feedback.getActivityName());
                     if (activityPos >= 0) activitySpinner.setSelection(activityPos);
 
-                    activitySpinner.setEnabled(false); // нельзя менять кружок
+                    activitySpinner.setEnabled(false);
 
                     ratingBar.setRating(feedback.getRating());
                     commentEditText.setText(feedback.getComment());
