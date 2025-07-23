@@ -2,6 +2,7 @@ package com.example.scienceyouthhub;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,7 +74,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         boolean canEdit = false;
         if ("Admin".equals(userRole)) {
             canEdit = true;
-        } else if ("Instructor".equals(userRole) && activity.getInstructorId().equals(currentUserId)) {
+        } else if ("Instructor".equals(userRole) && TextUtils.equals(activity.getInstructorId(), currentUserId)) {
             canEdit = true;
         }
         holder.editBtn.setVisibility(canEdit ? View.VISIBLE : View.GONE);

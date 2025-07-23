@@ -20,7 +20,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
             case "Supervisor":
                 tabTitles = Arrays.asList("Events");
                 fragmentClasses = Arrays.asList(
-                        ActivitiesFragment.class
+                        SupervisorEventsFragment.class
                 );
                 break;
             case "Admin":
@@ -33,20 +33,22 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
                 );
                 break;
             case "Instructor":
-                tabTitles = Arrays.asList("Activities", "My students", "Feedbacks");
+                tabTitles = Arrays.asList("Activities", "My students", "Feedbacks", "Notifications");
                 fragmentClasses = Arrays.asList(
                         ActivitiesFragment.class,
-                        UsersFragment.class, // Or your MyStudentsFragment.class
-                        FeedbackFragment.class
+                        UsersFragment.class,
+                        FeedbackFragment.class,
+                        NotificationsFragment.class
                 );
                 break;
             case "Parent":
-                tabTitles = Arrays.asList("All activities", "Search activities", "My children", "Photos");
+                tabTitles = Arrays.asList("All activities", "Search activities", "My children", "Photos","Notifications");
                 fragmentClasses = Arrays.asList(
-                        ActivitiesFragment.class, // For all activities
-                        ActivitiesFragment.class, // For search — you can replace with SearchActivitiesFragment.class
-                        ChildrenFragment.class,   // Own children
-                        PhotosFragment.class
+                        ActivitiesFragment.class,
+                        ActivitiesFragment.class,
+                        ChildrenFragment.class,
+                        PhotosFragment.class,
+                        NotificationsFragment.class
                 );
                 break;
             case "Student":
@@ -54,7 +56,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
                 tabTitles = Arrays.asList("Activities", "My enrollments", "Feedbacks");
                 fragmentClasses = Arrays.asList(
                         ActivitiesFragment.class,
-                        ActivitiesFragment.class, // For "My enrollments" you can replace with MyEnrollmentsFragment.class
+                        ActivitiesFragment.class,
                         FeedbackFragment.class
                 );
                 break;
@@ -67,7 +69,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
         try {
             return fragmentClasses.get(position).newInstance();
         } catch (Exception e) {
-            // In case the class is not found
+
             return new ActivitiesFragment();
         }
     }
