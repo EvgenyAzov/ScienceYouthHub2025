@@ -10,7 +10,7 @@ public class FeedbackModel implements Serializable {
     private String userName;
     private String comment;
     private int rating;
-    // Если хочешь — можно добавить List<String> photoBase64 для фото в отзыве
+    // If you want, you can add List<String> photoBase64 to store photos in the feedback
 
     public FeedbackModel() {}
 

@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "ScienceYouthHub.db";
-    private static final int DB_VERSION = 3;  // Была 2, теперь 3 из-за parentId
+    private static final int DB_VERSION = 3;  // Was 2, now 3 due to parentId
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -48,7 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("name", user.getName());
         values.put("age", user.getAge());
         values.put("isDirty", 1);
-        values.put("parentId", user.getParentId()); // Добавлено
+        values.put("parentId", user.getParentId()); // Added
 
         long result = db.insertWithOnConflict("Users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         if (result == -1) {

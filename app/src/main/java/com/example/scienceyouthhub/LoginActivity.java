@@ -3,6 +3,7 @@ package com.example.scienceyouthhub;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -32,6 +33,12 @@ public class LoginActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         loginButton.setOnClickListener(v -> loginUser());
+
+        Button registerButton = findViewById(R.id.register_button);
+        registerButton.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void loginUser() {
@@ -39,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Введите email и пароль", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Enter email and password", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -49,11 +56,12 @@ public class LoginActivity extends AppCompatActivity {
                         String uid = mAuth.getCurrentUser().getUid();
                         db.collection("users").document(uid).get().addOnSuccessListener(document -> {
                             if (document.exists()) {
-                                // ВАЖНО: используем type!
                                 String role = document.getString("type");
                                 String name = document.getString("name");
                                 if (role == null) role = "Student";
                                 if (name == null || name.trim().isEmpty()) name = email;
+
+                                Log.d("LOGIN", "role=" + role + " name=" + name);
 
                                 SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
                                 prefs.edit()
@@ -65,13 +73,13 @@ public class LoginActivity extends AppCompatActivity {
                                 startActivity(intent);
                                 finish();
                             } else {
-                                Toast.makeText(this, "Профиль пользователя не найден", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "User profile not found", Toast.LENGTH_SHORT).show();
                             }
                         }).addOnFailureListener(e -> {
-                            Toast.makeText(this, "Ошибка получения роли: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Error getting role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         });
                     } else {
-                        Toast.makeText(this, "Ошибка авторизации", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

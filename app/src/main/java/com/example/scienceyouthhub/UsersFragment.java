@@ -40,7 +40,7 @@ public class UsersFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        // Получаем userRole
+        // Get userRole
         SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         userRole = prefs.getString("user_role", "Student");
 
@@ -57,7 +57,7 @@ public class UsersFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // FAB только для admin
+        // FAB only for admin
         if ("Admin".equals(userRole)) {
             addFab.setVisibility(View.VISIBLE);
             addFab.setOnClickListener(v -> showUserDialog(null, false));
@@ -113,9 +113,9 @@ public class UsersFragment extends Fragment {
         }
 
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle(isEdit ? "Изменить пользователя" : "Добавить пользователя")
+                .setTitle(isEdit ? "Edit user" : "Add user")
                 .setView(dialogView)
-                .setPositiveButton(isEdit ? "Сохранить" : "Добавить", (d, which) -> {
+                .setPositiveButton(isEdit ? "Save" : "Add", (d, which) -> {
                     String email = emailInput.getText().toString().trim();
                     String password = passwordInput.getText().toString().trim();
                     String name = nameInput.getText().toString().trim();
@@ -123,7 +123,7 @@ public class UsersFragment extends Fragment {
                     String role = roleSpinner.getSelectedItem().toString();
 
                     if (name.isEmpty() || ageStr.isEmpty() || role.isEmpty() || (!isEdit && (email.isEmpty() || password.isEmpty()))) {
-                        Toast.makeText(getContext(), "Заполните все поля", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -139,11 +139,11 @@ public class UsersFragment extends Fragment {
                                             .set(newUser)
                                             .addOnSuccessListener(aVoid -> {
                                                 loadUsers();
-                                                Toast.makeText(getContext(), "Пользователь добавлен", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(getContext(), "User added", Toast.LENGTH_SHORT).show();
                                             });
                                 })
                                 .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                                 );
                     } else {
                         String userId = user.getId();
@@ -152,11 +152,11 @@ public class UsersFragment extends Fragment {
                                 .set(updatedUser)
                                 .addOnSuccessListener(aVoid -> {
                                     loadUsers();
-                                    Toast.makeText(getContext(), "Изменения сохранены", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Changes saved", Toast.LENGTH_SHORT).show();
                                 });
                     }
                 })
-                .setNegativeButton("Отмена", null)
+                .setNegativeButton("Cancel", null)
                 .create();
         dialog.show();
     }
@@ -168,7 +168,7 @@ public class UsersFragment extends Fragment {
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     loadUsers();
-                    Toast.makeText(getContext(), "Пользователь удалён", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "User deleted", Toast.LENGTH_SHORT).show();
                 });
     }
 }

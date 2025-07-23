@@ -37,7 +37,7 @@ public class ChildrenFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        // Получаем id родителя (текущий юзер)
+        // Get parent id (current user)
         parentId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         parentName = prefs.getString("user_name", "Parent");
@@ -54,7 +54,7 @@ public class ChildrenFragment extends Fragment {
     }
 
     private void loadChildren() {
-        // Получить список детей из поля "children" документа parent
+        // Get the list of children from the "children" field in the parent document
         db.collection("users").document(parentId).get()
                 .addOnSuccessListener(parentDoc -> {
                     List<String> childIds = (List<String>) parentDoc.get("children");
@@ -64,7 +64,7 @@ public class ChildrenFragment extends Fragment {
                         childrenAdapter.notifyDataSetChanged();
                         return;
                     }
-                    // Считать профили детей по id
+                    // Fetch children's profiles by id
                     db.collection("users").whereIn("id", childIds)
                             .get()
                             .addOnSuccessListener(childSnaps -> {
@@ -79,58 +79,58 @@ public class ChildrenFragment extends Fragment {
     }
 
     private void showAddChildDialog() {
-        // Диалог добавления по email
+        // Add child dialog by email
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_child, null, false);
         EditText emailInput = dialogView.findViewById(R.id.addChildEmailEditText);
 
         new AlertDialog.Builder(getContext())
-                .setTitle("Добавить ребёнка")
+                .setTitle("Add child")
                 .setView(dialogView)
-                .setPositiveButton("Добавить", (dialog, which) -> {
+                .setPositiveButton("Add", (dialog, which) -> {
                     String email = emailInput.getText().toString().trim();
                     if (TextUtils.isEmpty(email)) {
-                        Toast.makeText(getContext(), "Введите email ребёнка!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Enter the child's email!", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    // Найти студента по email и добавить в массив children
+                    // Find the student by email and add to the parent's "children" array
                     db.collection("users")
                             .whereEqualTo("type", "Student")
                             .whereEqualTo("email", email)
                             .get()
                             .addOnSuccessListener(query -> {
                                 if (query.isEmpty()) {
-                                    Toast.makeText(getContext(), "Студент не найден!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Student not found!", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
                                 DocumentSnapshot studentDoc = query.getDocuments().get(0);
                                 String studentId = studentDoc.getId();
 
-                                // Добавляем id в массив children родителя
+                                // Add the id to the parent's "children" array
                                 db.collection("users").document(parentId)
                                         .update("children", FieldValue.arrayUnion(studentId))
                                         .addOnSuccessListener(aVoid -> {
-                                            Toast.makeText(getContext(), "Ребёнок добавлен!", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getContext(), "Child added!", Toast.LENGTH_SHORT).show();
                                             loadChildren();
                                         });
                             });
                 })
-                .setNegativeButton("Отмена", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
     private void showRemoveChildDialog(UserModel child) {
         new AlertDialog.Builder(getContext())
-                .setTitle("Удалить ребёнка")
-                .setMessage("Вы действительно хотите удалить " + child.getName() + " из списка?")
-                .setPositiveButton("Удалить", (dialog, which) -> {
+                .setTitle("Remove child")
+                .setMessage("Are you sure you want to remove " + child.getName() + " from the list?")
+                .setPositiveButton("Remove", (dialog, which) -> {
                     db.collection("users").document(parentId)
                             .update("children", FieldValue.arrayRemove(child.getId()))
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(getContext(), "Ребёнок удалён", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), "Child removed", Toast.LENGTH_SHORT).show();
                                 loadChildren();
                             });
                 })
-                .setNegativeButton("Отмена", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
@@ -157,7 +157,7 @@ public class ChildrenFragment extends Fragment {
         public void onBindViewHolder(@NonNull ChildViewHolder holder, int position) {
             UserModel child = children.get(position);
             holder.childName.setText(child.getName());
-            holder.childAge.setText("Возраст: " + child.getAge());
+            holder.childAge.setText("Age: " + child.getAge());
             holder.removeBtn.setOnClickListener(v -> removeListener.onRemove(child));
         }
 

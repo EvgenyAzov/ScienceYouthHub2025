@@ -21,5 +21,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:src="@android:drawable/ic_input_add"
-        android:contentDescription="Добавить фото"/>
+        android:contentDescription="Add photo"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

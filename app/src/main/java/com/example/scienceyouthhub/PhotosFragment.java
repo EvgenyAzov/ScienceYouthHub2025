@@ -38,7 +38,7 @@ public class PhotosFragment extends Fragment {
 
     private List<String> activityIds = new ArrayList<>();
     private List<String> activityNames = new ArrayList<>();
-    private String userRole = "Admin"; // <-- Поставь динамически, если нужно
+    private String userRole = "Admin"; // <-- Set dynamically if needed
 
     public PhotosFragment() { }
 
@@ -100,7 +100,7 @@ public class PhotosFragment extends Fragment {
                         activityNames.add(doc.getString("name"));
                     }
                     if (activityIds.isEmpty()) {
-                        Toast.makeText(getContext(), "Нет доступных активностей!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "No available activities!", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_photo, null, false);
@@ -126,11 +126,11 @@ public class PhotosFragment extends Fragment {
                     });
 
                     AlertDialog dialog = new AlertDialog.Builder(getContext())
-                            .setTitle("Добавить фото")
+                            .setTitle("Add photo")
                             .setView(dialogView)
-                            .setPositiveButton("Сохранить", (d, w) -> {
+                            .setPositiveButton("Save", (d, w) -> {
                                 if (selectedImageUri == null) {
-                                    Toast.makeText(getContext(), "Выберите фотографию!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Please select a photo!", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
                                 try {
@@ -154,25 +154,25 @@ public class PhotosFragment extends Fragment {
                                             .collection("photos")
                                             .add(data)
                                             .addOnSuccessListener(ref -> {
-                                                Toast.makeText(getContext(), "Фото добавлено!", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(getContext(), "Photo added!", Toast.LENGTH_SHORT).show();
                                                 loadAllPhotos();
                                             });
 
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    Toast.makeText(getContext(), "Ошибка загрузки фото", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Photo upload error", Toast.LENGTH_SHORT).show();
                                 }
                             })
-                            .setNegativeButton("Отмена", null)
+                            .setNegativeButton("Cancel", null)
                             .create();
                     dialog.show();
                 });
     }
 
-    // Диалог редактирования фото (можно просто заменить фото)
+    // Photo edit dialog (you can just replace the photo)
     private void showEditPhotoDialog(PhotoModel photo) {
-        // Реализуй по аналогии с showAddPhotoDialog()
-        // Можно дать выбрать новую картинку и сохранить поверх старой (через .set() вместо .add())
+        // Implement similar to showAddPhotoDialog()
+        // You can allow to select a new image and save it over the old one (using .set() instead of .add())
     }
 
     @Override
@@ -180,7 +180,7 @@ public class PhotosFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
             selectedImageUri = data.getData();
-            // Можно показать превью, если добавить ImageView в диалог
+            // You can show a preview if you add ImageView in the dialog
         }
     }
 }

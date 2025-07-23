@@ -68,9 +68,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             holder.deleteBtn.setOnClickListener(v -> {
                 // AlertDialog before delete
                 new android.app.AlertDialog.Builder(context)
-                        .setTitle("Удалить фото")
-                        .setMessage("Вы действительно хотите удалить это фото?")
-                        .setPositiveButton("Удалить", (dialog, which) -> {
+                        .setTitle("Delete photo")
+                        .setMessage("Are you sure you want to delete this photo?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
                             FirebaseFirestore.getInstance()
                                     .collection("activities")
                                     .document(photo.getActivityId())
@@ -82,13 +82,13 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
                                         if (pos != RecyclerView.NO_POSITION) {
                                             photos.remove(pos);
                                             notifyItemRemoved(pos);
-                                            Snackbar.make(holder.itemView, "Фото удалено", Snackbar.LENGTH_SHORT).show();
+                                            Snackbar.make(holder.itemView, "Photo deleted", Snackbar.LENGTH_SHORT).show();
                                         }
                                     })
                                     .addOnFailureListener(e ->
-                                            Snackbar.make(holder.itemView, "Ошибка удаления", Snackbar.LENGTH_SHORT).show());
+                                            Snackbar.make(holder.itemView, "Delete error", Snackbar.LENGTH_SHORT).show());
                         })
-                        .setNegativeButton("Отмена", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
             });
         } else {

@@ -13,13 +13,13 @@
         <TextView
             android:id="@+id/childNameText"
             android:textStyle="bold"
-            android:text="Имя ребёнка"
+            android:text="Child's Name"
             android:textSize="18sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <TextView
             android:id="@+id/childAgeText"
-            android:text="Возраст: 0"
+            android:text="Age: 0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
@@ -28,5 +28,5 @@
         android:id="@+id/actionBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Добавить"/>
+        android:text="Add"/>
 </LinearLayout>

@@ -52,7 +52,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.role.setText(user.getType());
         holder.age.setText(String.valueOf(user.getAge()));
 
-        // Показывать кнопки только для admin
+        // Show buttons only for admin
         if ("Admin".equals(userRole)) {
             holder.editBtn.setVisibility(View.VISIBLE);
             holder.deleteBtn.setVisibility(View.VISIBLE);
@@ -61,13 +61,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
             holder.deleteBtn.setOnClickListener(v -> {
                 new AlertDialog.Builder(holder.itemView.getContext())
-                        .setTitle("Удалить пользователя")
-                        .setMessage("Вы действительно хотите удалить этого пользователя?")
-                        .setPositiveButton("Удалить", (dialog, which) -> {
+                        .setTitle("Delete user")
+                        .setMessage("Are you sure you want to delete this user?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
                             listener.onDelete(user);
-                            Snackbar.make(holder.itemView, "Пользователь удалён", Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(holder.itemView, "User deleted", Snackbar.LENGTH_SHORT).show();
                         })
-                        .setNegativeButton("Отмена", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
             });
         } else {

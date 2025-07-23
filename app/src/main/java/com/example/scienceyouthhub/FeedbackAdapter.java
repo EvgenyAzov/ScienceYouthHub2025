@@ -29,7 +29,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
         this.feedbacks = feedbacks;
         this.currentUserRole = userRole;
         this.actionListener = listener;
-        // Получаем текущий userId для сравнения с автором отзыва
+        // Get current userId to compare with the feedback author
         this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
     }
@@ -56,7 +56,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
         holder.commentTextView.setText(feedback.getComment());
         holder.ratingBar.setRating(feedback.getRating());
 
-        // --- Логика отображения иконок для разных ролей ---
+        // --- Logic for displaying icons for different roles ---
         boolean canEdit = false;
         boolean canDelete = false;
 
@@ -66,11 +66,11 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
         } else if (("Student".equals(currentUserRole) || "Parent".equals(currentUserRole))
                 && feedback.getUserId() != null
                 && feedback.getUserId().equals(currentUserId)) {
-            // Можно добавить свою логику для Student/Parent — редактировать и удалять только свои отзывы
+            // You can add your own logic for Student/Parent — allow editing and deleting only their own feedbacks
             canEdit = true;
             canDelete = true;
         }
-        // Instructor — всегда false (только просмотр)
+        // Instructor — always false (view only)
 
         holder.editBtn.setVisibility(canEdit ? View.VISIBLE : View.GONE);
         holder.deleteBtn.setVisibility(canDelete ? View.VISIBLE : View.GONE);
@@ -85,9 +85,9 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
         if (canDelete) {
             holder.deleteBtn.setOnClickListener(v -> {
                 new android.app.AlertDialog.Builder(context)
-                        .setTitle("Удалить отзыв")
-                        .setMessage("Вы действительно хотите удалить этот отзыв?")
-                        .setPositiveButton("Удалить", (dialog, which) -> {
+                        .setTitle("Delete feedback")
+                        .setMessage("Are you sure you want to delete this feedback?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
                             FirebaseFirestore.getInstance()
                                     .collection("activities")
                                     .document(feedback.getActivityId())
@@ -99,13 +99,13 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
                                         if (pos != RecyclerView.NO_POSITION) {
                                             feedbacks.remove(pos);
                                             notifyItemRemoved(pos);
-                                            Snackbar.make(holder.itemView, "Отзыв удалён", Snackbar.LENGTH_SHORT).show();
+                                            Snackbar.make(holder.itemView, "Feedback deleted", Snackbar.LENGTH_SHORT).show();
                                         }
                                     })
                                     .addOnFailureListener(e ->
-                                            Snackbar.make(holder.itemView, "Ошибка удаления", Snackbar.LENGTH_SHORT).show());
+                                            Snackbar.make(holder.itemView, "Delete error", Snackbar.LENGTH_SHORT).show());
                         })
-                        .setNegativeButton("Отмена", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
             });
         }

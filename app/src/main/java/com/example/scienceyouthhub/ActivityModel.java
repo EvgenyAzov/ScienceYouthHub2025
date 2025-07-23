@@ -9,7 +9,7 @@ public class ActivityModel {
     private String days;
     private int maxParticipants;
     private String instructorId;
-    private String instructorName; // Для отображения
+    private String instructorName; // For displaying in UI
 
     public ActivityModel() {}
 
@@ -26,7 +26,7 @@ public class ActivityModel {
         this.instructorName = instructorName;
     }
 
-    // Геттеры и сеттеры (можно сгенерировать)
+    // Getters and setters (can be generated)
     public String getId() { return id; }
     public String getName() { return name; }
     public String getCategory() { return category; }

@@ -14,7 +14,7 @@ public class UserModel {
 
     public UserModel() {}
 
-    // Полный конструктор
+    // Full constructor
     public UserModel(String id, String name, int age, String type, String parentId, List<String> myActivities) {
         this.id = id;
         this.name = name;
@@ -24,7 +24,7 @@ public class UserModel {
         this.myActivities = myActivities;
     }
 
-    // Короткий для совместимости (он нужен для твоей регистрации!)
+    // Short constructor for compatibility (used for registration!)
     public UserModel(String id, String name, int age, String type) {
         this(id, name, age, type, null, null);
     }

@@ -35,10 +35,10 @@ public class AllStudentsAdapter extends RecyclerView.Adapter<AllStudentsAdapter.
     public void onBindViewHolder(@NonNull StudentViewHolder holder, int pos) {
         UserModel student = students.get(pos);
         holder.name.setText(student.getName());
-        holder.age.setText("Возраст: " + student.getAge());
+        holder.age.setText("Age: " + student.getAge());
 
         boolean isAdded = myChildrenIds.contains(student.getId());
-        holder.actionBtn.setText(isAdded ? "Удалить" : "Добавить");
+        holder.actionBtn.setText(isAdded ? "Remove" : "Add");
 
         holder.actionBtn.setOnClickListener(v -> {
             if (isAdded) listener.onRemove(student);
@@ -56,7 +56,7 @@ public class AllStudentsAdapter extends RecyclerView.Adapter<AllStudentsAdapter.
             super(itemView);
             name = itemView.findViewById(R.id.childNameText);
             age = itemView.findViewById(R.id.childAgeText);
-            actionBtn = itemView.findViewById(R.id.actionBtn); // Заменить id у Button в item_child.xml
+            actionBtn = itemView.findViewById(R.id.actionBtn); // Make sure Button id in item_child.xml is actionBtn
         }
     }
 }

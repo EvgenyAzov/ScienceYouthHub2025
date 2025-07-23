@@ -28,7 +28,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
     private final OnActivityActionListener listener;
     private final String currentUserId;
     private final String userRole;
-    private List<String> myActivities; // список кружков студента
+    private List<String> myActivities; // list of student's enrolled activities
 
     private Context context;
 
@@ -40,7 +40,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         this.userRole = prefs.getString("user_role", "");
         this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
-        // myActivities нужно будет сеттить из fragment!
+        // myActivities should be set from the fragment!
     }
 
     public void setActivities(List<ActivityModel> activities) {
@@ -69,7 +69,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         holder.ageRange.setText(activity.getAgeRange());
         holder.instructor.setText(activity.getInstructorName());
 
-        // --- Логика показа кнопок по роли ---
+        // --- Logic for showing buttons based on role ---
         boolean canEdit = false;
         if ("Admin".equals(userRole)) {
             canEdit = true;
@@ -83,13 +83,13 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             holder.editBtn.setOnClickListener(v -> listener.onEdit(activity));
             holder.deleteBtn.setOnClickListener(v -> {
                 new android.app.AlertDialog.Builder(holder.itemView.getContext())
-                        .setTitle("Удалить кружок")
-                        .setMessage("Вы действительно хотите удалить этот кружок?")
-                        .setPositiveButton("Удалить", (dialog, which) -> {
+                        .setTitle("Delete activity")
+                        .setMessage("Are you sure you want to delete this activity?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
                             listener.onDelete(activity);
-                            Snackbar.make(holder.itemView, "Кружок удалён", Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(holder.itemView, "Activity deleted", Snackbar.LENGTH_SHORT).show();
                         })
-                        .setNegativeButton("Отмена", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
             });
         } else {
@@ -97,13 +97,13 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             holder.deleteBtn.setOnClickListener(null);
         }
 
-        // ======= КНОПКА "Записаться" для STUDENT =======
+        // ======= "Join" BUTTON for STUDENT =======
         if ("Student".equals(userRole)) {
             holder.joinBtn.setVisibility(View.VISIBLE);
 
             boolean alreadyJoined = myActivities != null && myActivities.contains(activity.getId());
             holder.joinBtn.setEnabled(!alreadyJoined);
-            holder.joinBtn.setText(alreadyJoined ? "Записан" : "Записаться");
+            holder.joinBtn.setText(alreadyJoined ? "Enrolled" : "Join");
 
             holder.joinBtn.setOnClickListener(null);
 
@@ -115,7 +115,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
                             .addOnSuccessListener(aVoid -> {
                                 if (myActivities != null) myActivities.add(activity.getId());
                                 notifyItemChanged(holder.getAdapterPosition());
-                                Snackbar.make(holder.itemView, "Вы успешно записаны в кружок!", Snackbar.LENGTH_SHORT).show();
+                                Snackbar.make(holder.itemView, "You have successfully joined the activity!", Snackbar.LENGTH_SHORT).show();
                             });
                 });
             }
@@ -142,7 +142,7 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
             instructor = itemView.findViewById(R.id.activityInstructorText);
             editBtn = itemView.findViewById(R.id.editActivityBtn);
             deleteBtn = itemView.findViewById(R.id.deleteActivityBtn);
-            joinBtn = itemView.findViewById(R.id.joinActivityBtn); // Должен быть в item_activity.xml
+            joinBtn = itemView.findViewById(R.id.joinActivityBtn); // Should exist in item_activity.xml
         }
     }
 }

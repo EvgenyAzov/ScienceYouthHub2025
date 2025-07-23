@@ -69,7 +69,7 @@ public class FeedbackFragment extends Fragment {
         return v;
     }
 
-    // === Для Student ===
+    // === For Student ===
     private void loadMyActivitiesThenShowDialog() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("users").document(currentUserId)
@@ -77,7 +77,7 @@ public class FeedbackFragment extends Fragment {
                 .addOnSuccessListener(doc -> {
                     myActivities = (List<String>) doc.get("myActivities");
                     if (myActivities == null || myActivities.isEmpty()) {
-                        Toast.makeText(getContext(), "Вы не записаны ни в один кружок!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "You are not enrolled in any activities!", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     showAddFeedbackDialog(myActivities, null);
@@ -115,9 +115,9 @@ public class FeedbackFragment extends Fragment {
     }
 
     /**
-     * Показываем диалог добавления отзыва.
-     * @param allowedActivityIds - только для Student (ограниченный список кружков)
-     * @param allowedActivityNames - если есть заранее список имён кружков (можно null)
+     * Shows the dialog to add feedback.
+     * @param allowedActivityIds - only for Student (restricted list of activities)
+     * @param allowedActivityNames - if there is a pre-filled list of activity names (can be null)
      */
     private void showAddFeedbackDialog(List<String> allowedActivityIds, List<String> allowedActivityNames) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -129,14 +129,14 @@ public class FeedbackFragment extends Fragment {
                     for (QueryDocumentSnapshot doc : activitySnapshots) {
                         String id = doc.getId();
                         String name = doc.getString("name");
-                        // --- Фильтрация по доступным кружкам для Student
+                        // --- Filtering by available activities for Student
                         if (allowedActivityIds == null || allowedActivityIds.contains(id)) {
                             activityIds.add(id);
                             activityNames.add(name);
                         }
                     }
                     if (activityIds.isEmpty()) {
-                        Toast.makeText(getContext(), "Нет доступных кружков для отзыва!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "No available activities for feedback!", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_feedback, null, false);
@@ -157,14 +157,14 @@ public class FeedbackFragment extends Fragment {
                     });
 
                     AlertDialog dialog = new AlertDialog.Builder(getContext())
-                            .setTitle("Добавить отзыв")
+                            .setTitle("Add feedback")
                             .setView(dialogView)
-                            .setPositiveButton("Сохранить", (d, w) -> {
+                            .setPositiveButton("Save", (d, w) -> {
                                 int rating = (int) ratingBar.getRating();
                                 String comment = commentEditText.getText().toString().trim();
 
                                 if (TextUtils.isEmpty(comment)) {
-                                    Toast.makeText(getContext(), "Введите текст отзыва!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Enter feedback text!", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
@@ -184,11 +184,11 @@ public class FeedbackFragment extends Fragment {
                                         .collection("feedbacks")
                                         .add(data)
                                         .addOnSuccessListener(ref -> {
-                                            Toast.makeText(getContext(), "Отзыв добавлен!", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getContext(), "Feedback added!", Toast.LENGTH_SHORT).show();
                                             loadAllFeedbacks();
                                         });
                             })
-                            .setNegativeButton("Отмена", null)
+                            .setNegativeButton("Cancel", null)
                             .create();
                     dialog.show();
                 });
@@ -200,7 +200,7 @@ public class FeedbackFragment extends Fragment {
                 && feedback.getUserId() != null
                 && feedback.getUserId().equals(currentUserId));
         if (!canEdit) {
-            Toast.makeText(getContext(), "Недостаточно прав для редактирования!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Not enough permissions to edit!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -230,14 +230,14 @@ public class FeedbackFragment extends Fragment {
                     commentEditText.setText(feedback.getComment());
 
                     new AlertDialog.Builder(getContext())
-                            .setTitle("Редактировать отзыв")
+                            .setTitle("Edit feedback")
                             .setView(dialogView)
-                            .setPositiveButton("Сохранить", (d, w) -> {
+                            .setPositiveButton("Save", (d, w) -> {
                                 int rating = (int) ratingBar.getRating();
                                 String comment = commentEditText.getText().toString().trim();
 
                                 if (TextUtils.isEmpty(comment)) {
-                                    Toast.makeText(getContext(), "Введите текст отзыва!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Enter feedback text!", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
@@ -252,11 +252,11 @@ public class FeedbackFragment extends Fragment {
                                         .document(feedback.getFeedbackId())
                                         .update(update)
                                         .addOnSuccessListener(unused -> {
-                                            Toast.makeText(getContext(), "Отзыв обновлён!", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getContext(), "Feedback updated!", Toast.LENGTH_SHORT).show();
                                             loadAllFeedbacks();
                                         });
                             })
-                            .setNegativeButton("Отмена", null)
+                            .setNegativeButton("Cancel", null)
                             .show();
                 });
     }

@@ -7,13 +7,13 @@
         android:id="@+id/feedbackUser"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Пользователь"
+        android:text="User"
         android:textStyle="bold"/>
     <TextView
         android:id="@+id/feedbackActivityName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Кружок"/>
+        android:text="Club"/>
     <RatingBar
         android:id="@+id/feedbackRatingBar"
         android:layout_width="wrap_content"
@@ -25,7 +25,7 @@
         android:id="@+id/feedbackComment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Комментарий"/>
+        android:text="Comment"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,12 +35,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_edit"
-            android:contentDescription="Редактировать"/>
+            android:contentDescription="Edit"/>
         <ImageButton
             android:id="@+id/deleteFeedbackBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_delete"
-            android:contentDescription="Удалить"/>
+            android:contentDescription="Delete"/>
     </LinearLayout>
 </LinearLayout>
