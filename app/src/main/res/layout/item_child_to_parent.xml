@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/childNameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Имя ребёнка"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/childInfoText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Возраст и ID"
+        android:textSize="14sp"
+        android:textColor="#888888"/>
+
+    <Button
+        android:id="@+id/addToActivityBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Добавить в занятие"
+        android:layout_marginTop="8dp"/>
+
+
+</LinearLayout>

@@ -35,12 +35,10 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
                 );
                 break;
             case "Instructor":
-                tabTitles = Arrays.asList("Activities", "My students", "Feedbacks", "Notifications");
+                tabTitles = Arrays.asList("Feedbacks", "Photos");
                 fragmentClasses = Arrays.asList(
-                        ActivitiesFragment.class,
-                        UsersFragment.class,
-                        FeedbackFragment.class,
-                        NotificationsFragment.class
+                        InstructorFeedbacksFragment.class,
+                        InstructorPhotosFragment.class
                 );
                 break;
             case "Parent":
@@ -48,7 +46,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
                 fragmentClasses = Arrays.asList(
                         ActivitiesFragment.class,
                         ActivitiesFragment.class,
-                        ChildrenFragment.class,
+                        ParentChildrenFragment.class,
                         PhotosFragment.class,
                         NotificationsFragment.class
                 );

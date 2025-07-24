@@ -13,6 +13,12 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,6 +59,12 @@ public class MainActivity extends AppCompatActivity {
         TextView welcomeTextView = findViewById(R.id.welcomeTextView);
         String welcomeText = buildWelcomeText(userRole, userName);
         welcomeTextView.setText(welcomeText);
+
+        // --- ВАЖНО: уведомление для инструктора ---
+        if ("Instructor".equals(userRole)) {
+            String instructorId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            checkInstructorNotifications(instructorId);
+        }
     }
 
     private String loadUserRole() {
@@ -85,5 +97,40 @@ public class MainActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    // --------- УВЕДОМЛЕНИЕ ДЛЯ ИНСТРУКТОРА ---------
+    private void checkInstructorNotifications(String instructorId) {
+        FirebaseFirestore.getInstance().collection("activities")
+                .whereEqualTo("instructorId", instructorId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<String> lowEnrollmentEvents = new ArrayList<>();
+                    Date now = new Date();
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        ActivityModel activity = doc.toObject(ActivityModel.class);
+                        if (activity != null && activity.getEndDate() != null && activity.getEndDate().before(now)) {
+                            // Здесь participants должен быть массивом id участников!
+                            List<String> participants = (List<String>) doc.get("participants");
+                            int numParticipants = participants != null ? participants.size() : 0;
+                            if (numParticipants < 5) {
+                                lowEnrollmentEvents.add(activity.getName());
+                            }
+                        }
+                    }
+                    if (!lowEnrollmentEvents.isEmpty()) {
+                        showLowEnrollmentDialog(lowEnrollmentEvents);
+                    }
+                });
+    }
+
+    private void showLowEnrollmentDialog(List<String> eventNames) {
+        StringBuilder msg = new StringBuilder("Внимание! На следующие мероприятия записано менее 5 участников:\n\n");
+        for (String s : eventNames) msg.append("• ").append(s).append("\n");
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Уведомление инструктора")
+                .setMessage(msg.toString())
+                .setPositiveButton("OK", null)
+                .show();
     }
 }

@@ -65,6 +65,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
                                 prefs.edit()
+                                        .putString("user_id", uid)     // <-- вот это добавь!
                                         .putString("user_role", role)
                                         .putString("user_name", name)
                                         .apply();

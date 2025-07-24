@@ -11,13 +11,14 @@ public class UserModel {
     private String type;
     private String parentId;
     private List<String> myActivities;
-    // --- Добавлено для Instructor ---
     private String category;
     private String subcategory;
+    // --- Для Parent ---
+    private List<String> childrenIds; // Список id детей
 
     public UserModel() {}
 
-    // Полный конструктор (добавлены category и subcategory в конец)
+    // Полный конструктор (используется для старой логики, не трогаем)
     public UserModel(String id, String name, int age, String type, String parentId, List<String> myActivities,
                      String category, String subcategory) {
         this.id = id;
@@ -30,12 +31,15 @@ public class UserModel {
         this.subcategory = subcategory;
     }
 
-    // Короткий конструктор (для других ролей/старой логики)
     public UserModel(String id, String name, int age, String type) {
         this(id, name, age, type, null, null, null, null);
     }
 
-    // Геттеры/сеттеры
+    // --- NEW: getter/setter для детей ---
+    public List<String> getChildrenIds() { return childrenIds; }
+    public void setChildrenIds(List<String> childrenIds) { this.childrenIds = childrenIds; }
+
+    // Остальные getter/setter
     public String getId() { return id; }
     public String getName() { return name; }
     public int getAge() { return age; }
@@ -54,7 +58,7 @@ public class UserModel {
     public void setCategory(String category) { this.category = category; }
     public void setSubcategory(String subcategory) { this.subcategory = subcategory; }
 
-    // Firestore utils
+    // --- Firestore mapping ---
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
@@ -65,11 +69,12 @@ public class UserModel {
         map.put("myActivities", myActivities);
         map.put("category", category);
         map.put("subcategory", subcategory);
+        map.put("childrenIds", childrenIds); // добавлено поле для родителей
         return map;
     }
 
     public static UserModel fromMap(Map<String, Object> map) {
-        return new UserModel(
+        UserModel user = new UserModel(
                 (String) map.get("id"),
                 (String) map.get("name"),
                 map.get("age") instanceof Long ? ((Long) map.get("age")).intValue() : (Integer) map.get("age"),
@@ -79,5 +84,8 @@ public class UserModel {
                 (String) map.get("category"),
                 (String) map.get("subcategory")
         );
+        // Аккуратно считываем список детей
+        user.setChildrenIds((List<String>) map.get("childrenIds"));
+        return user;
     }
 }
