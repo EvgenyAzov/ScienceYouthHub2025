@@ -16,16 +16,10 @@ public class InstructorAdapter extends RecyclerView.Adapter<InstructorAdapter.In
         this.instructors = instructors;
     }
 
-    public void setInstructors(List<UserModel> instructors) {
-        this.instructors = instructors;
-        notifyDataSetChanged();
-    }
-
     @NonNull
     @Override
     public InstructorViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_instructor, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_instructor, parent, false);
         return new InstructorViewHolder(v);
     }
 
@@ -33,8 +27,9 @@ public class InstructorAdapter extends RecyclerView.Adapter<InstructorAdapter.In
     public void onBindViewHolder(@NonNull InstructorViewHolder holder, int position) {
         UserModel instructor = instructors.get(position);
         holder.name.setText(instructor.getName());
-
-        // Добавь ещё поля, если нужно
+        holder.category.setText("Category: " + (instructor.getCategory() != null ? instructor.getCategory() : "-"));
+        holder.subcategory.setText("Skill: " + (instructor.getSubcategory() != null ? instructor.getSubcategory() : "-"));
+        holder.age.setText("Age: " + instructor.getAge());
     }
 
     @Override
@@ -43,11 +38,13 @@ public class InstructorAdapter extends RecyclerView.Adapter<InstructorAdapter.In
     }
 
     static class InstructorViewHolder extends RecyclerView.ViewHolder {
-        TextView name, email;
+        TextView name, category, subcategory, age;
         InstructorViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.instructorNameText);
-            email = itemView.findViewById(R.id.instructorEmailText);
+            category = itemView.findViewById(R.id.instructorCategoryText);
+            subcategory = itemView.findViewById(R.id.instructorSubcategoryText);
+            age = itemView.findViewById(R.id.instructorAgeText);
         }
     }
 }

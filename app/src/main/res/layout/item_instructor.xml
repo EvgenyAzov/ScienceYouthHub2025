@@ -1,25 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
+    android:padding="12dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:background="?attr/selectableItemBackground">
+    android:background="@android:color/white">
 
     <TextView
         android:id="@+id/instructorNameText"
-        android:text="Instructor Name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Name"
         android:textStyle="bold"
         android:textSize="18sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_marginBottom="4dp"/>
 
     <TextView
-        android:id="@+id/instructorEmailText"
-        android:text="email@example.com"
-        android:textSize="14sp"
+        android:id="@+id/instructorCategoryText"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:layout_marginBottom="2dp"/>
 
-    <!-- Добавь, если нужно, телефон, роль, и т.п. -->
+    <TextView
+        android:id="@+id/instructorSubcategoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Skill"
+        android:layout_marginBottom="2dp"/>
+
+    <TextView
+        android:id="@+id/instructorAgeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Age"/>
+
 </LinearLayout>
