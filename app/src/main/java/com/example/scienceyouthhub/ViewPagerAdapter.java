@@ -18,9 +18,11 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
 
         switch (role) {
             case "Supervisor":
-                tabTitles = Arrays.asList("Events");
+                tabTitles = Arrays.asList("Events","Instructors");
                 fragmentClasses = Arrays.asList(
-                        SupervisorEventsFragment.class
+                        SupervisorEventsFragment.class,
+                        InstructorsFragment.class
+
                 );
                 break;
             case "Admin":
