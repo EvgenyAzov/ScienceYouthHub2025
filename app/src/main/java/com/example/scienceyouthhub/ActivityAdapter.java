@@ -1,47 +1,30 @@
 package com.example.scienceyouthhub;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.text.TextUtils;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.ActivityViewHolder> {
 
-    public interface OnActivityActionListener {
+    public interface OnActionListener {
         void onEdit(ActivityModel activity);
         void onDelete(ActivityModel activity);
     }
 
     private List<ActivityModel> activities;
-    private final OnActivityActionListener listener;
-    private final String currentUserId;
-    private final String userRole;
-    private List<String> myActivities; // list of student's enrolled activities
+    private final OnActionListener listener;
 
-    private Context context;
-
-    public ActivityAdapter(List<ActivityModel> activities, Context context, OnActivityActionListener listener) {
+    public ActivityAdapter(List<ActivityModel> activities, OnActionListener listener) {
         this.activities = activities;
-        this.context = context;
         this.listener = listener;
-        SharedPreferences prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        this.userRole = prefs.getString("user_role", "");
-        this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
-        // myActivities should be set from the fragment!
     }
 
     public void setActivities(List<ActivityModel> activities) {
@@ -49,80 +32,54 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         notifyDataSetChanged();
     }
 
-    public void setMyActivities(List<String> myActivities) {
-        this.myActivities = myActivities;
-        notifyDataSetChanged();
-    }
-
     @NonNull
     @Override
     public ActivityViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_activity, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity, parent, false);
         return new ActivityViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ActivityViewHolder holder, int position) {
-        ActivityModel activity = activities.get(position);
-        holder.name.setText(activity.getName());
-        holder.category.setText(activity.getCategory());
-        holder.ageRange.setText(activity.getAgeRange());
-        holder.instructor.setText(activity.getInstructorName());
+        ActivityModel model = activities.get(position);
+        holder.name.setText(model.getName());
+        holder.category.setText("Category: " + model.getCategory());
+        holder.subcategory.setText("Subcategory: " + model.getSubcategory());
+        holder.ageRange.setText("Ages: " + model.getAgeRange());
+        holder.instructor.setText("Instructor: " + model.getInstructorName());
 
-        // --- Logic for showing buttons based on role ---
-        boolean canEdit = false;
-        if ("Admin".equals(userRole)) {
-            canEdit = true;
-        } else if ("Instructor".equals(userRole) && TextUtils.equals(activity.getInstructorId(), currentUserId)) {
-            canEdit = true;
+        // Дата
+        SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+        String dateRange = "";
+        if (model.getStartDate() != null && model.getEndDate() != null) {
+            dateRange = fmt.format(model.getStartDate()) + " - " + fmt.format(model.getEndDate());
         }
-        holder.editBtn.setVisibility(canEdit ? View.VISIBLE : View.GONE);
-        holder.deleteBtn.setVisibility(canEdit ? View.VISIBLE : View.GONE);
+        holder.date.setText("Dates: " + dateRange);
 
-        if (canEdit) {
-            holder.editBtn.setOnClickListener(v -> listener.onEdit(activity));
-            holder.deleteBtn.setOnClickListener(v -> {
-                new android.app.AlertDialog.Builder(holder.itemView.getContext())
-                        .setTitle("Delete activity")
-                        .setMessage("Are you sure you want to delete this activity?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
-                            listener.onDelete(activity);
-                            Snackbar.make(holder.itemView, "Activity deleted", Snackbar.LENGTH_SHORT).show();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
-            });
+        // Дни недели (если есть)
+        if (model.getDaysOfWeek() != null && !model.getDaysOfWeek().isEmpty()) {
+            holder.daysOfWeek.setText("Days: " + String.join(", ", model.getDaysOfWeek()));
         } else {
-            holder.editBtn.setOnClickListener(null);
-            holder.deleteBtn.setOnClickListener(null);
+            holder.daysOfWeek.setText("");
         }
 
-        // ======= "Join" BUTTON for STUDENT =======
-        if ("Student".equals(userRole)) {
-            holder.joinBtn.setVisibility(View.VISIBLE);
-
-            boolean alreadyJoined = myActivities != null && myActivities.contains(activity.getId());
-            holder.joinBtn.setEnabled(!alreadyJoined);
-            holder.joinBtn.setText(alreadyJoined ? "Enrolled" : "Join");
-
-            holder.joinBtn.setOnClickListener(null);
-
-            if (!alreadyJoined) {
-                holder.joinBtn.setOnClickListener(v -> {
-                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    db.collection("users").document(currentUserId)
-                            .update("myActivities", com.google.firebase.firestore.FieldValue.arrayUnion(activity.getId()))
-                            .addOnSuccessListener(aVoid -> {
-                                if (myActivities != null) myActivities.add(activity.getId());
-                                notifyItemChanged(holder.getAdapterPosition());
-                                Snackbar.make(holder.itemView, "You have successfully joined the activity!", Snackbar.LENGTH_SHORT).show();
-                            });
-                });
-            }
+        // Специальное событие (цвет + блок CRUD)
+        if (!model.isApprovedByAdmin()) {
+            holder.itemView.setBackgroundColor(Color.parseColor("#FFF6B8")); // Светло-жёлтый
+            holder.editBtn.setEnabled(false);
+            holder.deleteBtn.setEnabled(false);
         } else {
-            holder.joinBtn.setVisibility(View.GONE);
+            holder.itemView.setBackgroundColor(Color.WHITE);
+            holder.editBtn.setEnabled(true);
+            holder.deleteBtn.setEnabled(true);
         }
+
+        holder.editBtn.setOnClickListener(v -> {
+            if (model.isApprovedByAdmin() && listener != null) listener.onEdit(model);
+        });
+        holder.deleteBtn.setOnClickListener(v -> {
+            if (model.isApprovedByAdmin() && listener != null) listener.onDelete(model);
+        });
     }
 
     @Override
@@ -130,20 +87,24 @@ public class ActivityAdapter extends RecyclerView.Adapter<ActivityAdapter.Activi
         return activities == null ? 0 : activities.size();
     }
 
-    static class ActivityViewHolder extends RecyclerView.ViewHolder {
-        TextView name, category, ageRange, instructor;
-        ImageButton editBtn, deleteBtn;
-        Button joinBtn;
+    public interface OnActivityActionListener {
+    }
 
-        ActivityViewHolder(@NonNull View itemView) {
+    static class ActivityViewHolder extends RecyclerView.ViewHolder {
+        TextView name, category, subcategory, ageRange, instructor, date, daysOfWeek;
+        ImageButton editBtn, deleteBtn;
+
+        public ActivityViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.activityNameText);
             category = itemView.findViewById(R.id.activityCategoryText);
+            subcategory = itemView.findViewById(R.id.activitySubcategoryText);
             ageRange = itemView.findViewById(R.id.activityAgeRangeText);
             instructor = itemView.findViewById(R.id.activityInstructorText);
+            date = itemView.findViewById(R.id.activityDateText);
+            daysOfWeek = itemView.findViewById(R.id.activityDaysOfWeekText);
             editBtn = itemView.findViewById(R.id.editActivityBtn);
             deleteBtn = itemView.findViewById(R.id.deleteActivityBtn);
-            joinBtn = itemView.findViewById(R.id.joinActivityBtn); // Should exist in item_activity.xml
         }
     }
 }

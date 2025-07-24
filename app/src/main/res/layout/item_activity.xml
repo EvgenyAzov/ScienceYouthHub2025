@@ -1,18 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="12dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="8dp"
-    android:background="@android:color/white">
-
-    <Button
-        android:id="@+id/joinActivityBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Join"
-        android:visibility="gone"
-        android:layout_marginStart="8dp"/>
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/activityNameText"
@@ -20,7 +11,8 @@
         android:layout_height="wrap_content"
         android:text="Name"
         android:textStyle="bold"
-        android:textSize="16sp"/>
+        android:textSize="16sp"
+        android:layout_marginBottom="4dp"/>
 
     <TextView
         android:id="@+id/activityCategoryText"
@@ -29,10 +21,16 @@
         android:text="Category"/>
 
     <TextView
+        android:id="@+id/activitySubcategoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Subcategory"/>
+
+    <TextView
         android:id="@+id/activityAgeRangeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Age range"/>
+        android:text="Ages"/>
 
     <TextView
         android:id="@+id/activityInstructorText"
@@ -40,10 +38,23 @@
         android:layout_height="wrap_content"
         android:text="Instructor"/>
 
+    <TextView
+        android:id="@+id/activityDateText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dates"/>
+
+    <TextView
+        android:id="@+id/activityDaysOfWeekText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Days of week"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
 
         <ImageButton
             android:id="@+id/editActivityBtn"
@@ -57,5 +68,19 @@
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_delete"
             android:contentDescription="Delete"/>
+        <TextView
+            android:id="@+id/activityDaysText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Days:"
+            android:textStyle="italic"/>
+
+        <TextView
+            android:id="@+id/activityDatesText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="From: - To: -"
+            android:textStyle="italic"/>
+
     </LinearLayout>
 </LinearLayout>

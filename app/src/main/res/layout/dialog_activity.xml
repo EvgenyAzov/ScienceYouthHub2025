@@ -2,46 +2,130 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
+
     <LinearLayout
         android:orientation="vertical"
         android:padding="24dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Название мероприятия -->
         <EditText
             android:id="@+id/dialogActivityName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Club name"/>
-        <EditText
+            android:hint="Activity name"/>
+
+        <!-- Категория -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Category"
+            android:layout_marginTop="12dp"/>
+        <Spinner
             android:id="@+id/dialogActivityCategory"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Подкатегория -->
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Category"/>
+            android:text="Subcategory"
+            android:layout_marginTop="8dp"/>
+        <Spinner
+            android:id="@+id/dialogActivitySubcategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Диапазон возраста -->
         <EditText
             android:id="@+id/dialogActivityAgeRange"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Age range (e.g., 12-16)"/>
+            android:hint="Age range (e.g., 12-16)"
+            android:layout_marginTop="12dp"/>
+
+        <!-- Описание -->
         <EditText
             android:id="@+id/dialogActivityDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Description"/>
-        <EditText
-            android:id="@+id/dialogActivityDays"
+            android:hint="Description"
+            android:layout_marginTop="12dp"/>
+
+        <!-- Дни недели (чекбоксы) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Days of week"
+            android:layout_marginTop="12dp"/>
+        <LinearLayout
+            android:id="@+id/daysOfWeekLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Days of classes"/>
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+            <CheckBox android:id="@+id/checkboxMon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mon"/>
+            <CheckBox android:id="@+id/checkboxTue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tue"/>
+            <CheckBox android:id="@+id/checkboxWed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Wed"/>
+            <CheckBox android:id="@+id/checkboxThu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Thu"/>
+            <CheckBox android:id="@+id/checkboxFri" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fri"/>
+            <CheckBox android:id="@+id/checkboxSat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sat"/>
+            <CheckBox android:id="@+id/checkboxSun" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sun"/>
+        </LinearLayout>
+
+        <!-- Дата начала -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start date"
+            android:layout_marginTop="12dp"/>
+        <Button
+            android:id="@+id/startDateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select start date"/>
+
+        <!-- Дата конца -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="End date"
+            android:layout_marginTop="8dp"/>
+        <Button
+            android:id="@+id/endDateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select end date"/>
+
+        <!-- Максимальное количество участников -->
         <EditText
             android:id="@+id/dialogActivityMaxParticipants"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Max participants"
-            android:inputType="number"/>
+            android:inputType="number"
+            android:layout_marginTop="12dp"/>
+
+        <!-- Инструктор -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Instructor"
+            android:layout_marginTop="12dp"/>
         <Spinner
             android:id="@+id/dialogActivityInstructor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+
+        <!-- Special Event -->
+        <CheckBox
+            android:id="@+id/specialEventCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Special event (requires admin approval)"
+            android:layout_marginTop="16dp"/>
+
     </LinearLayout>
 </ScrollView>
