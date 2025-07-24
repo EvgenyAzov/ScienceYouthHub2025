@@ -22,4 +22,10 @@
         <item>Supervisor</item>
         <item>Admin</item>
     </string-array>
+    <string-array name="registration_user_roles">
+        <item>Student</item>
+        <item>Parent</item>
+        <item>Instructor</item>
+
+    </string-array>
 </resources>

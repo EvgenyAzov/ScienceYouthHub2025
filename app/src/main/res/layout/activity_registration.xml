@@ -45,9 +45,44 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"/>
 
+    <!-- Category (Instructor only) -->
+    <TextView
+        android:id="@+id/category_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"/>
+
+    <Spinner
+        android:id="@+id/category_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone"/>
+
+    <!-- Subcategory (Instructor only) -->
+    <TextView
+        android:id="@+id/subcategory_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Subcategory"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"/>
+
+    <Spinner
+        android:id="@+id/subcategory_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"/>
+
     <Button
         android:id="@+id/register_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Register"/>
+
+
+
 </LinearLayout>
