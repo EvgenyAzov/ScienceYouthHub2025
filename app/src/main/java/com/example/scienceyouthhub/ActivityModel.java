@@ -21,6 +21,7 @@ public class ActivityModel implements Serializable {
     private Date endDate;    // дата окончания
     private boolean approvedByAdmin;
 
+    private String status; // “Плохо”, “Удовлетворительно”, “Отлично”
     private List<String> participants;
 
     // Пустой конструктор (важен для Firestore и сериализации)
@@ -100,4 +101,7 @@ public class ActivityModel implements Serializable {
 
     public List<String> getParticipants() { return participants; }
     public void setParticipants(List<String> participants) { this.participants = participants; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

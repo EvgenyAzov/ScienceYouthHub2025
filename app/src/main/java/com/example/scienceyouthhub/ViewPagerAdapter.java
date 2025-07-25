@@ -18,45 +18,49 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
 
         switch (role) {
             case "Supervisor":
-                tabTitles = Arrays.asList("Events","Instructors");
+                tabTitles = Arrays.asList("All activities","Events","Instructors");
                 fragmentClasses = Arrays.asList(
+                        AllActivitiesFragment.class,
                         SupervisorEventsFragment.class,
                         InstructorsFragment.class
 
                 );
                 break;
             case "Admin":
-                tabTitles = Arrays.asList("Activities", "Users", "Feedbacks", "Photos");
+                tabTitles = Arrays.asList("All activities","Approve act", "Users", "Act status");
                 fragmentClasses = Arrays.asList(
-                        ActivitiesFragment.class,
+                        AllActivitiesFragment.class ,
+                        AdminPendingActivitiesFragment.class,
                         UsersFragment.class,
-                        FeedbackFragment.class,
-                        PhotosFragment.class
+                        AdminActivitiesWithStatusFragment.class
+
                 );
                 break;
             case "Instructor":
-                tabTitles = Arrays.asList("Feedbacks", "Photos");
+                tabTitles = Arrays.asList("All activities","Feedbacks", "Photos");
                 fragmentClasses = Arrays.asList(
+                        AllActivitiesFragment.class ,
                         InstructorFeedbacksFragment.class,
                         InstructorPhotosFragment.class
                 );
                 break;
             case "Parent":
-                tabTitles = Arrays.asList("All activities",     "My children",    "Photos",   "Notifications");
+                tabTitles = Arrays.asList("All activities",     "My children",    "Photos",   "Feedbacks");
                 fragmentClasses = Arrays.asList(
-                        ActivitiesFragment.class,
+                        AllActivitiesFragment.class,
                         ParentChildrenFragment.class,
                         ParentPhotosFragment.class,
-                        NotificationsFragment.class
+                        ParentFeedbacksFragment.class
                 );
                 break;
             case "Student":
             default:
-                tabTitles = Arrays.asList("Activities", "My enrollments", "Feedbacks");
+                tabTitles = Arrays.asList("All activities", "My enrollments", "Feedbacks","INFO");
                 fragmentClasses = Arrays.asList(
-                        ActivitiesFragment.class,
-                        ActivitiesFragment.class,
-                        FeedbackFragment.class
+                        AllActivitiesFragment.class,
+                        StudentScheduleFragment.class,
+                        FeedbackFragment.class,
+                        StudentProfileFragment.class
                 );
                 break;
         }
