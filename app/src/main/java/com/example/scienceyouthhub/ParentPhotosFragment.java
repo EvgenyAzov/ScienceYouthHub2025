@@ -139,14 +139,7 @@ public class ParentPhotosFragment extends Fragment {
         String childId = myChildren.get(childPos).getId();
         String activityId = childActivities.get(activityPos).getId();
 
-        // Сначала ищем активность и проверяем, что ребёнок действительно есть в участниках
-        ActivityModel activity = null;
-        for (ActivityModel act : childActivities) {
-            if (act.getId().equals(activityId)) {
-                activity = act;
-                break;
-            }
-        }
+        ActivityModel activity = childActivities.stream().filter(act -> act.getId().equals(activityId)).findFirst().orElse(null);
         if (activity == null || activity.getParticipants() == null || !activity.getParticipants().contains(childId)) {
             photoAdapter.notifyDataSetChanged();
             return;
@@ -158,12 +151,26 @@ public class ParentPhotosFragment extends Fragment {
                 .addOnSuccessListener(querySnapshot -> {
                     filteredPhotos.clear();
                     for (DocumentSnapshot doc : querySnapshot) {
-                        PhotoModel photo = doc.toObject(PhotoModel.class);
-                        if (photo != null) {
-                            filteredPhotos.add(photo);
-                        }
+                        // Читаем base64 напрямую (ищем любое возможное имя)
+                        String base64 = null;
+                        if (doc.contains("photoBase64")) base64 = doc.getString("photoBase64");
+                        else if (doc.contains("imageBase64")) base64 = doc.getString("imageBase64");
+                        else if (doc.contains("base64")) base64 = doc.getString("base64");
+
+                        PhotoModel photo = new PhotoModel();
+                        photo.setPhotoBase64(base64); // или сделай сеттер универсальным
+                        photo.setActivityId(activityId);
+                        photo.setActivityName(activity.getName());
+                        photo.setUserId(doc.getString("userId"));
+                        photo.setUserName(doc.getString("userName"));
+                        photo.setPhotoId(doc.getId());
+                        if (doc.contains("date") && doc.getDate("date") != null)
+                            photo.setDate(doc.getDate("date"));
+
+                        filteredPhotos.add(photo);
                     }
                     photoAdapter.notifyDataSetChanged();
                 });
     }
+
 }
