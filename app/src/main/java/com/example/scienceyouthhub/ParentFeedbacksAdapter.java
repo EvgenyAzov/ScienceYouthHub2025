@@ -1,7 +1,7 @@
 package com.example.scienceyouthhub;
 
 import android.view.*;
-import android.widget.TextView;
+import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.*;
@@ -15,18 +15,21 @@ public class ParentFeedbacksAdapter extends RecyclerView.Adapter<ParentFeedbacks
 
     @NonNull
     @Override
-    public ParentFeedbacksAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_parent_feedback, parent, false);
         return new ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ParentFeedbacksAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FeedbackModel f = feedbacks.get(position);
         holder.authorTextView.setText(f.getAuthorName());
-        holder.ratingTextView.setText("Оценка: " + f.getRating());
+        holder.ratingBar.setRating(f.getRating());
         holder.commentTextView.setText(f.getComment());
-        holder.dateTextView.setText(android.text.format.DateFormat.format("dd.MM.yyyy HH:mm", f.getDate()));
+        if (f.getDate() != null)
+            holder.dateTextView.setText(android.text.format.DateFormat.format("dd.MM.yyyy HH:mm", f.getDate()));
+        else
+            holder.dateTextView.setText("—");
     }
 
     @Override
@@ -35,11 +38,12 @@ public class ParentFeedbacksAdapter extends RecyclerView.Adapter<ParentFeedbacks
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView authorTextView, ratingTextView, commentTextView, dateTextView;
+        TextView authorTextView, commentTextView, dateTextView;
+        RatingBar ratingBar;
         ViewHolder(View v) {
             super(v);
             authorTextView = v.findViewById(R.id.parentFeedbackAuthorTextView);
-            ratingTextView = v.findViewById(R.id.parentFeedbackRatingTextView);
+            ratingBar = v.findViewById(R.id.parentFeedbackRatingBar);
             commentTextView = v.findViewById(R.id.parentFeedbackCommentTextView);
             dateTextView = v.findViewById(R.id.parentFeedbackDateTextView);
         }

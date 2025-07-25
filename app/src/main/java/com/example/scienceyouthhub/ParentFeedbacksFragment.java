@@ -89,14 +89,18 @@ public class ParentFeedbacksFragment extends Fragment {
             return;
         }
         String activityId = childActivities.get(pos).getId();
-        FirebaseFirestore.getInstance().collection("feedbacks")
+        // Загружаем только родительские отзывы по текущему activityId и студенту (childId)
+        FirebaseFirestore.getInstance().collection("instructor_feedbacks")
                 .whereEqualTo("activityId", activityId)
+                .whereEqualTo("studentId", childId)
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(snapshot -> {
                     feedbacks.clear();
                     for (DocumentSnapshot doc : snapshot) {
                         FeedbackModel f = doc.toObject(FeedbackModel.class);
+                        // Можно дополнительно фильтровать по роли автора, если поле authorRole добавляешь:
+                        // if ("parent".equals(doc.getString("authorRole"))) { ... }
                         feedbacks.add(f);
                     }
                     feedbacksAdapter.notifyDataSetChanged();
@@ -107,7 +111,6 @@ public class ParentFeedbacksFragment extends Fragment {
         int pos = activitySpinner.getSelectedItemPosition();
         if (pos < 0 || childActivities.isEmpty()) return;
         String activityId = childActivities.get(pos).getId();
-        String activityName = childActivities.get(pos).getName();
 
         String comment = feedbackEditText.getText().toString().trim();
         String ratingStr = ratingEditText.getText().toString().trim();
@@ -121,18 +124,20 @@ public class ParentFeedbacksFragment extends Fragment {
             return;
         }
 
-        FeedbackModel feedback = new FeedbackModel();
-        feedback.setId(UUID.randomUUID().toString());
-        feedback.setActivityId(activityId);
-        feedback.setActivityName(activityName);
-        feedback.setAuthorId(parentId);
-        feedback.setAuthorName(parentName);
-        feedback.setRating(rating);
-        feedback.setComment(comment);
-        feedback.setDate(new Date());
+        Map<String, Object> feedback = new HashMap<>();
+        String feedbackId = UUID.randomUUID().toString();
+        feedback.put("id", feedbackId);
+        feedback.put("activityId", activityId);
+        feedback.put("authorId", parentId);
+        feedback.put("authorName", parentName);
+        feedback.put("authorRole", "parent");
+        feedback.put("studentId", childId);
+        feedback.put("comment", comment);
+        feedback.put("rating", rating);
+        feedback.put("date", new Date());
 
-        FirebaseFirestore.getInstance().collection("feedbacks")
-                .document(feedback.getId())
+        FirebaseFirestore.getInstance().collection("instructor_feedbacks")
+                .document(feedbackId)
                 .set(feedback)
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(getContext(), "Отзыв отправлен!", Toast.LENGTH_SHORT).show();
