@@ -70,10 +70,11 @@ public class ActivitiesFragment extends Fragment {
         final List<String> areas = Arrays.asList("All areas", "Science", "Art", "Social");
         final List<String> months = Arrays.asList("All months", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
 
-        ArrayAdapter<String> areaAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, areas);
+        // Исправление: requireContext()
+        ArrayAdapter<String> areaAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, areas);
         spinnerArea.setAdapter(areaAdapter);
 
-        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, months);
+        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, months);
         spinnerMonth.setAdapter(monthAdapter);
 
         List<String> instructors = new ArrayList<>();
@@ -89,8 +90,11 @@ public class ActivitiesFragment extends Fragment {
                             instructors.add(name);
                         }
                     }
-                    ArrayAdapter<String> instrAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, instructors);
-                    spinnerInstructor.setAdapter(instrAdapter);
+                    // --- Главное исправление! ---
+                    if (isAdded()) {
+                        ArrayAdapter<String> instrAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, instructors);
+                        spinnerInstructor.setAdapter(instrAdapter);
+                    }
                 });
 
         AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
@@ -176,35 +180,29 @@ public class ActivitiesFragment extends Fragment {
         EditText descriptionInput = dialogView.findViewById(R.id.dialogActivityDescription);
         EditText maxParticipantsInput = dialogView.findViewById(R.id.dialogActivityMaxParticipants);
 
-        // === ВАЖНО: вот тут исправляем под твой layout ===
         Button startDateBtn = dialogView.findViewById(R.id.startDateBtn);
         Button endDateBtn = dialogView.findViewById(R.id.endDateBtn);
         CheckBox specialEventCheckbox = dialogView.findViewById(R.id.specialEventCheck);
-        // ================================================
 
-        // Для хранения выбранных дат:
         final Date[] startDate = {null};
         final Date[] endDate = {null};
 
-        // Подгружаем категории
         List<String> categories = new ArrayList<>(subcategoriesMap.keySet());
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, categories);
+        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories);
         categorySpinner.setAdapter(catAdapter);
 
-        // Динамически подгружаем подкатегории
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedCat = (String) categorySpinner.getSelectedItem();
                 List<String> subs = subcategoriesMap.getOrDefault(selectedCat, Collections.singletonList("None"));
-                ArrayAdapter<String> subAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, subs);
+                ArrayAdapter<String> subAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, subs);
                 subcategorySpinner.setAdapter(subAdapter);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // При редактировании — заполняем поля
         if (activity != null) {
             nameInput.setText(activity.getName());
             categorySpinner.setSelection(categories.indexOf(activity.getCategory()));
@@ -215,7 +213,6 @@ public class ActivitiesFragment extends Fragment {
             ageRangeInput.setText(activity.getAgeRange());
             descriptionInput.setText(activity.getDescription());
             maxParticipantsInput.setText(String.valueOf(activity.getMaxParticipants()));
-            // Даты
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
             if (activity.getStartDate() != null) {
                 startDate[0] = activity.getStartDate();
@@ -228,7 +225,6 @@ public class ActivitiesFragment extends Fragment {
             specialEventCheckbox.setChecked(!activity.isApprovedByAdmin());
         }
 
-        // Пикер даты для даты старта
         startDateBtn.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             if (startDate[0] != null) cal.setTime(startDate[0]);
@@ -276,7 +272,6 @@ public class ActivitiesFragment extends Fragment {
 
                     boolean approvedByAdmin = !isSpecial;
 
-                    // Сохраняем
                     if (activity == null) {
                         ActivityModel newActivity = new ActivityModel(
                                 UUID.randomUUID().toString(), name, category, subcategory, ageRange,

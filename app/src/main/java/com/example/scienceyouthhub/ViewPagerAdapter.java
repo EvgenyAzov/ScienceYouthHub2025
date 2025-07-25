@@ -47,7 +47,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
                         ActivitiesFragment.class,
                         ActivitiesFragment.class,
                         ParentChildrenFragment.class,
-                        PhotosFragment.class,
+                        ParentPhotosFragment.class,
                         NotificationsFragment.class
                 );
                 break;

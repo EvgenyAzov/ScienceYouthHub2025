@@ -21,6 +21,8 @@ public class ActivityModel implements Serializable {
     private Date endDate;    // дата окончания
     private boolean approvedByAdmin;
 
+    private List<String> participants;
+
     // Пустой конструктор (важен для Firestore и сериализации)
     public ActivityModel() {
         this.approvedByAdmin = true; // по умолчанию true
@@ -95,4 +97,7 @@ public class ActivityModel implements Serializable {
 
     public boolean isApprovedByAdmin() { return approvedByAdmin; }
     public void setApprovedByAdmin(boolean approvedByAdmin) { this.approvedByAdmin = approvedByAdmin; }
+
+    public List<String> getParticipants() { return participants; }
+    public void setParticipants(List<String> participants) { this.participants = participants; }
 }

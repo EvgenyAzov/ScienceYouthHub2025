@@ -4,9 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -49,10 +47,24 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         PhotoModel photo = photos.get(position);
         Context context = holder.itemView.getContext();
 
-        // Decode base64
-        byte[] bytes = Base64.decode(photo.getPhotoBase64(), Base64.DEFAULT);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        holder.imageView.setImageBitmap(bitmap);
+        // === SAFE BASE64 DECODE ===
+        Bitmap bitmap = null;
+        String base64 = photo.getPhotoBase64();
+        if (base64 != null && !base64.trim().isEmpty()) {
+            try {
+                byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            } catch (Exception e) {
+                bitmap = null;
+            }
+        }
+
+        if (bitmap != null) {
+            holder.imageView.setImageBitmap(bitmap);
+        } else {
+            holder.imageView.setImageResource(R.drawable.ic_no_photo); // добавь заглушку в drawable!
+        }
+        // ===
 
         holder.userTextView.setText(photo.getUserName());
         holder.clubTextView.setText(photo.getActivityName());
@@ -66,7 +78,6 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             });
 
             holder.deleteBtn.setOnClickListener(v -> {
-                // AlertDialog before delete
                 new android.app.AlertDialog.Builder(context)
                         .setTitle("Delete photo")
                         .setMessage("Are you sure you want to delete this photo?")
@@ -99,7 +110,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
 
     @Override
     public int getItemCount() {
-        return photos.size();
+        return photos == null ? 0 : photos.size();
     }
 
     static class PhotoViewHolder extends RecyclerView.ViewHolder {
